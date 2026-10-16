@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TreeMatch · Right tree, right place</title>
+<meta name="description" content="TreeMatch recommends Philippine tree species that suit your planting site: its soil, elevation, rainfall, slope, sunlight and purpose.">
+<link rel="icon" type="image/png" href="assets/logo-mark.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@500;600&family=Work+Sans:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<a class="skip" href="#match">Skip to the matcher</a>
+
+<header class="masthead" id="top">
+  <nav class="bar" aria-label="Main">
+    <a class="bar-brand" href="#top" aria-label="TreeMatch home">
+      <img class="bar-mark" src="assets/logo-mark.png" alt="" width="378" height="553">
+      <span>TreeMatch</span>
+    </a>
+    <div class="bar-tab">
+      <a href="#how">How it works</a>
+      <a href="#species">Species</a>
+      <a href="#about">About</a>
+      <a href="#team">Team</a>
+    </div>
+    <a class="btn btn-ink bar-action" href="#match">Match my site</a>
+    <a class="bar-menu" href="#species">Menu</a>
+  </nav>
+
+  <div class="mosaic" aria-hidden="true">
+    <figure class="m-p1 ph"><img src="assets/palawan-forest.jpg" alt="" width="1920" height="1440"></figure>
+    <div class="m-g tile tile-paper"><img class="mosaic-mark" src="assets/logo-mark.png" alt="" width="378" height="553"></div>
+    <figure class="m-p2 ph"><img src="assets/pine-ridge.jpg" alt="" width="1920" height="1080"></figure>
+    <div class="m-s tile tile-sky"></div>
+    <figure class="m-p3 ph"><img src="assets/narra-tall.jpg" alt="" width="1920" height="3454"></figure>
+    <div class="m-b tile tile-bark"></div>
+    <figure class="m-v ph">
+      <video src="assets/wind-in-tree.webm" poster="assets/wind-in-tree-poster.jpg" autoplay muted loop playsinline preload="metadata"></video>
+    </figure>
+    <figure class="m-p4 ph"><img src="assets/mangrove-channel.jpg" alt="" width="1920" height="1280"></figure>
+  </div>
+
+  <div class="hero">
+    <div class="hero-side">
+      <p class="hero-lede reveal-late">TreeMatch reads your planting site and names the species that will actually grow there.</p>
+      <a class="btn btn-ink reveal-late" href="#match">Match my site</a>
+    </div>
+    <h1 class="hero-title" aria-label="Right tree, right place.">
+      <span class="line"><span>Right tree,</span></span>
+      <span class="line"><span>right place.</span></span>
+    </h1>
+  </div>
+</header>
+
+<main>
+
+  <!-- Intro: the problem, as statement tiles -->
+  <section class="board" aria-labelledby="problem-title">
+    <div class="board-a tile-green rise">
+      <h2 id="problem-title" class="slogan">Not every<br>tree fits</h2>
+    </div>
+    <div class="board-b tile-sage rise"><p class="board-figure" aria-label="Seven site conditions">7</p></div>
+    <figure class="board-c ph rise"><img src="assets/narra-bark.jpg" alt="Close view of the furrowed bark of a Narra tree" width="1920" height="2560" loading="lazy"></figure>
+    <div class="board-text">
+      <p class="lead rise">People plant what the nursery has, what the neighbours planted, or whatever grows fastest. A tree that thrives in one town can fail in the next, because seven things change between them: soil, elevation, rainfall, temperature, slope, sunlight and what the tree is meant to do. Get one of them wrong and the seedling dies in its first dry season, or lives fifty years cracking a wall it was never meant to stand beside. TreeMatch exists so that choosing a tree starts with the ground it will stand in.</p>
+    </div>
+  </section>
+
+  <!-- How it works: staircase -->
+  <section class="stairs" id="how" aria-labelledby="how-title">
+    <div class="stair">
+      <h2 id="how-title" class="stair-line rise">First, the ground.</h2>
+      <p class="stair-note rise">Tell us the soil (clay, loam, sand, rock or tidal mud) and how steep the land is.</p>
+    </div>
+    <div class="stair">
+      <p class="stair-line rise">Then the climate.</p>
+      <p class="stair-note rise">Set your elevation and yearly rainfall. We estimate the temperature from the height.</p>
+    </div>
+    <div class="stair">
+      <p class="stair-line rise">Then the purpose.</p>
+      <p class="stair-note rise">Shade, fruit, timber, a windbreak on the coast, or holding a hillside together.</p>
+    </div>
+    <div class="stair">
+      <p class="stair-line stair-last rise">Then, your trees.</p>
+      <p class="stair-note rise">Each match comes with how well it fits, why, and how to look after it.</p>
+    </div>
+  </section>
+
+  <!-- The live thing: the matcher -->
+  <section class="match" id="match" aria-labelledby="match-title">
+    <div class="match-inner">
+      <aside class="match-read" aria-live="polite">
+        <p class="read-label">Your site</p>
+        <p class="read-sentence" id="readout">A sunny, gently sloping lowland site at 150 m, with loam soil and about 2,000 mm of rain a year.</p>
+        <p class="read-temp"><span id="temp">26.5</span> °C average, estimated</p>
+        <p class="read-count" id="count">Choose a purpose to sort your matches.</p>
+      </aside>
+
+      <div class="match-main">
+        <h2 id="match-title" class="h2 rise">Describe your site</h2>
+        <form id="site" class="site-form" novalidate>
+          <fieldset class="field field-wide">
+            <legend>Elevation</legend>
+            <div class="range-row">
+              <input type="range" id="elev" name="elev" min="0" max="2700" step="10" value="150" aria-describedby="elev-out">
+              <output id="elev-out" for="elev">150 m</output>
+            </div>
+          </fieldset>
+
+          <fieldset class="field">
+            <legend>Soil</legend>
+            <div class="chips">
+              <label><input type="radio" name="soil" value="clay"><span>Clay</span></label>
+              <label><input type="radio" name="soil" value="loam" checked><span>Loam</span></label>
+              <label><input type="radio" name="soil" value="sandy"><span>Sandy</span></label>
+              <label><input type="radio" name="soil" value="rocky"><span>Rocky or limestone</span></label>
+              <label><input type="radio" name="soil" value="tidal"><span>Tidal mud</span></label>
+            </div>
+          </fieldset>
+
+          <fieldset class="field">
+            <legend>Rainfall a year</legend>
+            <div class="chips">
+              <label><input type="radio" name="rain" value="1200"><span>Dry, under 1,500 mm</span></label>
+              <label><input type="radio" name="rain" value="2000" checked><span>Moderate</span></label>
+              <label><input type="radio" name="rain" value="3200"><span>Wet, over 2,500 mm</span></label>
+            </div>
+          </fieldset>
+
+          <fieldset class="field">
+            <legend>Slope</legend>
+            <div class="chips">
+              <label><input type="radio" name="slope" value="0"><span>Flat</span></label>
+              <label><input type="radio" name="slope" value="1" checked><span>Gentle</span></label>
+              <label><input type="radio" name="slope" value="2"><span>Steep</span></label>
+            </div>
+          </fieldset>
+
+          <fieldset class="field">
+            <legend>Sunlight</legend>
+            <div class="chips">
+              <label><input type="radio" name="sun" value="full" checked><span>Full sun</span></label>
+              <label><input type="radio" name="sun" value="partial"><span>Part shade</span></label>
+              <label><input type="radio" name="sun" value="shade"><span>Mostly shade</span></label>
+            </div>
+          </fieldset>
+
+          <fieldset class="field">
+            <legend>Space</legend>
+            <div class="chips">
+              <label><input type="radio" name="space" value="S"><span>House lot</span></label>
+              <label><input type="radio" name="space" value="M"><span>Large yard</span></label>
+              <label><input type="radio" name="space" value="L" checked><span>Open land</span></label>
+            </div>
+          </fieldset>
+
+          <fieldset class="field field-wide">
+            <legend>Purpose</legend>
+            <div class="chips">
+              <label><input type="radio" name="purpose" value="any" checked><span>Anything</span></label>
+              <label><input type="radio" name="purpose" value="shade"><span>Shade</span></label>
+              <label><input type="radio" name="purpose" value="fruit"><span>Fruit</span></label>
+              <label><input type="radio" name="purpose" value="timber"><span>Timber</span></label>
+              <label><input type="radio" name="purpose" value="erosion"><span>Hold a slope</span></label>
+              <label><input type="radio" name="purpose" value="coast"><span>Protect a coast</span></label>
+              <label><input type="radio" name="purpose" value="restore"><span>Reforest</span></label>
+              <label><input type="radio" name="purpose" value="ornamental"><span>Ornamental</span></label>
+            </div>
+          </fieldset>
+          <noscript><p class="noscript">The matcher needs JavaScript. The full species list below works without it.</p></noscript>
+        </form>
+
+        <div class="results" id="results" aria-live="polite"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Showcase: one picture cut across tiles -->
+  <section class="cut" aria-labelledby="cut-title">
+    <div class="cut-grid" id="cut-grid">
+      <div class="cut-tile cut-color tile-green cut-head"><h2 id="cut-title" class="cut-h">Wrong place</h2></div>
+      <div class="cut-tile cut-color tile-sage cut-f1"><p>Narra roots lift walls and pipes when it is planted closer than 8 m to a house.</p></div>
+      <div class="cut-tile cut-color tile-sky cut-f2"><p>Benguet pine weakens in lowland heat, below about 700 m.</p></div>
+      <div class="cut-tile cut-color tile-bark cut-f3"><p>Bakauan dies on dry ground. It needs the tide to reach it every day.</p></div>
+      <a class="cut-tile cut-color tile-ink cut-act" href="#match"><span>Check my site</span><span aria-hidden="true" class="arrow">&rarr;</span></a>
+    </div>
+    <p class="sr-only">Mangrove roots at low tide, shown across the tiles.</p>
+  </section>
+
+  <!-- List: species by zone -->
+  <section class="species" id="species" aria-labelledby="species-title">
+    <div class="species-head">
+      <h2 id="species-title" class="h2 rise"><span class="soft">22 native trees,</span><br>by where they grow.</h2>
+      <a class="btn btn-ink rise" href="#match">Match my site</a>
+    </div>
+    <div class="species-body">
+      <div class="tabs" role="tablist" aria-label="Elevation zones">
+        <button role="tab" id="tab-coastal" aria-controls="zone" aria-selected="true" data-zone="coastal"><span class="tab-name">Coastal</span><span class="tab-meta">Shore and tide</span></button>
+        <button role="tab" id="tab-lowland" aria-controls="zone" aria-selected="false" data-zone="lowland" tabindex="-1"><span class="tab-name">Lowland</span><span class="tab-meta">0 to 500 m</span></button>
+        <button role="tab" id="tab-upland" aria-controls="zone" aria-selected="false" data-zone="upland" tabindex="-1"><span class="tab-name">Upland</span><span class="tab-meta">500 to 1,000 m</span></button>
+        <button role="tab" id="tab-highland" aria-controls="zone" aria-selected="false" data-zone="highland" tabindex="-1"><span class="tab-name">Highland</span><span class="tab-meta">Above 1,000 m</span></button>
+      </div>
+      <ul class="bands" id="zone" role="tabpanel" aria-labelledby="tab-coastal"></ul>
+    </div>
+  </section>
+
+  <!-- About: the mark and the method -->
+  <section class="about" id="about" aria-labelledby="about-title">
+    <h2 id="about-title" class="h2 rise">Why a pin, and a tree</h2>
+    <p class="about-lead rise">The tree is the subject, and the pin is the point: a species only means something once you know where it will stand. Every part of the mark says the same thing as the tool.</p>
+    <div class="about-tiles">
+      <figure class="about-photo ph rise">
+        <img src="assets/batad-terraces.jpg" alt="Batad rice terraces in Ifugao after the rain, green slopes under mountains" width="1920" height="1442" loading="lazy">
+        <p class="about-note">The green curve under the tree is the land and the blue one is the water. Together they say that a tree belongs to its surroundings, never to itself.</p>
+      </figure>
+      <div class="about-side">
+        <div class="about-mark tile-sage rise">
+          <img src="assets/logo-mark.png" alt="The TreeMatch logo: a tree with its roots inside a location pin, above green land and blue water" width="378" height="553" loading="lazy">
+        </div>
+        <dl class="facts rise">
+          <div><dt>Species</dt><dd>22 native</dd></div>
+          <div><dt>Site conditions</dt><dd>7</dd></div>
+          <div><dt>Elevation range</dt><dd>0 to 2,700 m</dd></div>
+          <div><dt>Zones</dt><dd>Coast to highland</dd></div>
+        </dl>
+      </div>
+    </div>
+  </section>
+
+  <!-- Team -->
+  <section class="team" id="team" aria-labelledby="team-title">
+    <h2 id="team-title" class="h2 rise">The people behind it</h2>
+    <ul class="team-list">
+      <li class="rise"><h3 class="team-name">Ademar A. Pelaez</h3><p class="team-role">Chief Executive Officer</p></li>
+      <li class="rise"><h3 class="team-name">Genesis A. Cuenca</h3><p class="team-role">Chief Information Officer</p></li>
+      <li class="rise"><h3 class="team-name">Jezel F. Vallada</h3><p class="team-role">Chief Marketing Officer</p></li>
+      <li class="rise"><h3 class="team-name">Alick A. Caspe</h3><p class="team-role">Chief Technology Officer</p></li>
+    </ul>
+  </section>
+
+  <!-- Contact -->
+  <section class="contact" id="contact" aria-label="Contact">
+    <p class="contact-sentence rise">Write to us about a species, a planting site, or a school or barangay tree-planting drive.</p>
+    <figure class="contact-photo ph rise"><img src="assets/narra-crown.jpg" alt="A Narra trunk with its species tag" width="1920" height="2007" loading="lazy"></figure>
+    <div class="contact-links rise">
+      <p class="contact-q">Planting soon?</p>
+      <a href="mailto:hello@treematch.com?subject=A%20question%20about%20my%20planting%20site">hello@treematch.com</a>
+      <a href="#match">Open the matcher</a>
+      <p class="contact-meta">Philippines. We reply within two working days.</p>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="foot-top">
+    <p class="foot-brand"><span class="foot-logo"><img src="assets/logo-mark.png" alt="" width="378" height="553"></span>TreeMatch</p>
+    <p>Recommends native tree species for a planting site in the Philippines.</p>
+    <p>Recommendations are a guide. Check with your local CENRO before large plantings.</p>
+    <a class="foot-top-link" href="#top">Back to top</a>
+  </div>
+  <a class="foot-mail" href="mailto:hello@treematch.com"><span>hello@</span><span>treematch.com</span></a>
+  <div class="foot-meta">
+    <nav aria-label="Footer"><a href="#match">Matcher</a><a href="#species">Species</a><a href="#about">About</a><a href="#team">Team</a></nav>
+    <p class="credits">Pictures and footage: <a href="https://commons.wikimedia.org/w/index.php?curid=191854862">“Philippine Narra tree 02”</a> and <a href="https://commons.wikimedia.org/w/index.php?curid=191854861">“Philippine Narra tree 03”</a> by P1898, <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>; <a href="https://commons.wikimedia.org/w/index.php?curid=70922106">“Pinus kesiya (Benguet pine) in Dahilayan, Bukidnon 3”</a> by Obsidian Soul, <a href="https://creativecommons.org/publicdomain/zero/1.0/deed.en">CC0</a>; <a href="https://commons.wikimedia.org/w/index.php?curid=91279521">“Palawan, Philippines, Forest”</a> by Vyacheslav Argenberg, <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>; <a href="https://commons.wikimedia.org/w/index.php?curid=30167275">“Mangroves and channel at Bakhawan Eco-park and Research Centre”</a> by Paolobon140, <a href="https://creativecommons.org/licenses/by-sa/3.0/">CC BY-SA 3.0</a>; <a href="https://commons.wikimedia.org/w/index.php?curid=25772148">“Bark of Pterocarpus indicus”</a> by Geographer, <a href="https://creativecommons.org/licenses/by-sa/3.0/">CC BY-SA 3.0</a>; <a href="https://commons.wikimedia.org/w/index.php?curid=111265803">“Mangrove roots at low tide”</a> by Dan Lundberg, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC BY-SA 2.0</a>; <a href="https://commons.wikimedia.org/w/index.php?curid=21682141">“Batad Rice Terraces after the rain”</a> by Cid Jacobo, <a href="https://creativecommons.org/licenses/by-sa/3.0/">CC BY-SA 3.0</a>; <a href="https://commons.wikimedia.org/wiki/File:Wind_in_tree_AppletonFarms_Massachusetts_2024-10.webm">“Wind in tree”</a> by Oakley413, <a href="https://creativecommons.org/licenses/by-sa/4.0">CC BY-SA 4.0</a>. All via Wikimedia Commons, shown in greyscale.</p>
+    <p>Philippines, 2026</p>
+  </div>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>

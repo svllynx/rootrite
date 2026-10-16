@@ -1,0 +1,4 @@
+.taste-skill/
+.vercel/
+node_modules/
+.DS_Store
