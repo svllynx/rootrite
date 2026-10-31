@@ -329,12 +329,20 @@ input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.15); }
 .facts dd { font: 600 22px/1.2 var(--display); letter-spacing: -0.02em; margin-top: 4px; }
 
 /* ---------- Team ---------- */
-.team { margin-top: var(--gap-section); padding: 0 var(--margin); display: grid; grid-template-columns: var(--axis) 1fr; }
-.team-list { display: grid; grid-template-columns: 1fr 1fr; gap: 40px 32px; }
-.team-list li { display: flex; flex-direction: column; gap: 4px; }
-.team-list li:first-child { grid-column: 1 / -1; } /* five people: the CEO leads, then two rows of two */
+.team { margin-top: var(--gap-section); padding: 0 var(--margin); }
+.team-title { text-align: center; margin-bottom: 64px; }
+/* An org chart: the CEO on top, a stem down to a bar, and a drop to each officer */
+.org { --link: 3px; --drop: 36px; --gap: 16px; display: flex; flex-direction: column; align-items: center; }
+.org-lead { position: relative; min-width: min(100%, 380px); padding: 36px 48px; text-align: center; background: var(--green); color: var(--on-dark); }
+.org-lead .team-role { color: var(--on-dark); opacity: .8; }
+.org-lead::after { content: ""; position: absolute; left: 50%; top: 100%; width: var(--link); height: var(--drop); margin-left: calc(var(--link) / -2); background: var(--green); }
+.org-officers { position: relative; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--gap); width: 100%; margin-top: calc(var(--drop) * 2); }
+.org-officers::before { content: ""; position: absolute; top: calc(var(--drop) * -1); left: calc((100% - 3 * var(--gap)) / 8); right: calc((100% - 3 * var(--gap)) / 8); height: var(--link); background: var(--green); }
+.org-officers li { position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 32px 20px; text-align: center; background: var(--sage); }
+.org-officers li::before { content: ""; position: absolute; left: 50%; bottom: 100%; width: var(--link); height: var(--drop); margin-left: calc(var(--link) / -2); background: var(--green); }
 .team-name { font: 600 var(--t-sub)/1.1 var(--display); letter-spacing: -0.03em; }
 .team-role { font-size: 18px; color: var(--soft); }
+.org-officers .team-name { font-size: clamp(22px, 1.9vw, 28px); text-wrap: balance; }
 
 /* ---------- Contact ---------- */
 .contact {
@@ -392,6 +400,13 @@ input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.15); }
 }
 
 /* ---------- Tablet ---------- */
+/* Below 1280px the four officers sit two by two, with drops into the first row only */
+@media (max-width: 1280px) {
+  .org-officers { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .org-officers::before { left: calc((100% - var(--gap)) / 4); right: calc((100% - var(--gap)) / 4); }
+  .org-officers li:nth-child(n+3)::before { display: none; }
+}
+
 @media (max-width: 1024px) {
   .bar-tab { gap: 18px; }
   .stair:nth-child(4) { grid-column: 6 / -1; }
@@ -475,8 +490,10 @@ input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.15); }
   .about-side { grid-column: 1; }
   .about-mark { aspect-ratio: 3 / 2; }
 
-  .team { grid-template-columns: 1fr; gap: 32px; }
-  .team-list { grid-template-columns: 1fr; gap: 24px; }
+  .team-title { margin-bottom: 40px; }
+  .org-lead { width: 100%; padding: 28px 20px; }
+  .org-officers { grid-template-columns: 1fr; gap: 8px; margin-top: 8px; }
+  .org-lead::after, .org-officers::before, .org-officers li::before { display: none; }
 
   .contact { grid-template-columns: 96px 1fr; gap: 20px; padding: 120px var(--margin) 96px; }
   .contact-sentence { grid-column: 1 / -1; }
