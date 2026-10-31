@@ -15,6 +15,7 @@
   text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 2px;
 }
 .link-btn:hover { color: var(--ink); }
+.zone-more { margin-top: 16px; }
 
 .input { display: flex; flex-direction: column; gap: 8px; }
 .input label { font: 400 16px/1.2 var(--text); color: var(--soft); }

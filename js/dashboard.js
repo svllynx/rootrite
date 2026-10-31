@@ -4,6 +4,7 @@ document.documentElement.classList.add("js");
 const FREE_LIMIT = 3;       // Free: top 3 native species
 const PREMIUM_MIN = 10;     // Premium: at least the top 10 that can grow there
 const PREMIUM_FLOOR = 40;   // ...and any further species scoring 40% or more
+const PREMIUM_MAX = 20;     // ...up to 20, so the list stays readable
 const COMPARE_MAX = 3;
 
 const state = { account: null, plan: "free", compare: [] };
@@ -83,7 +84,7 @@ function sheetBody(sp) {
     <div class="sheet-cols">
       <div><h4 class="sheet-h">About this tree</h4>
       <dl class="sheet-dl">
-        <div><dt>Native status</dt><dd>${sp.native === "Endemic" ? "Endemic: found only in the Philippines" : "Native to the Philippines"}</dd></div>
+        <div><dt>Native status</dt><dd>${esc(nativeText(sp))}</dd></div>
         <div><dt>Characteristics</dt><dd>${esc(sp.traits)}</dd></div>
         <div><dt>Habitat</dt><dd>${esc(sp.habitat)}</dd></div>
         <div><dt>Common uses</dt><dd>${esc(cap(sp.uses.map(u => USE_WORDS[u]).join(", ")))}</dd></div>
@@ -123,7 +124,7 @@ function render(animate) {
   const all = rank(s);
   const viable = all.filter(r => r.fit >= 45);
   const shown = isPremium()
-    ? all.filter((r, i) => i < PREMIUM_MIN || r.fit >= PREMIUM_FLOOR).filter(r => r.fit >= 30)
+    ? all.filter((r, i) => i < PREMIUM_MIN || r.fit >= PREMIUM_FLOOR).filter(r => r.fit >= 30).slice(0, PREMIUM_MAX)
     : viable.slice(0, FREE_LIMIT);
   const box = $("results");
 
@@ -220,7 +221,7 @@ function renderCompare() {
           ${row("Sunlight", r => esc(sunText(r.sp.sun)))}
           ${row("Mature size", r => SIZE_WORDS[r.sp.size])}
           ${row("Intended use", r => esc(cap(r.sp.uses.map(u => USE_WORDS[u]).join(", "))))}
-          ${row("Native status", r => r.sp.native)}
+          ${row("Native status", r => esc(nativeText(r.sp)))}
         </tbody>
       </table>
     </div>`;

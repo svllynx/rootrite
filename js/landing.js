@@ -1,14 +1,20 @@
 /* RootRite landing page: the zone list, the cut photo board, entrances and the nav's account state. */
 document.documentElement.classList.add("js");
 
-/* Species list by zone, as tabs */
-function renderZone(zone, animate) {
+/* Species list by zone, as tabs. Long zones show the first few until "Show all" is pressed. */
+const ZONE_PREVIEW = 8;
+function renderZone(zone, animate, all) {
   const list = document.getElementById("zone");
-  const items = SPECIES.filter(sp => sp.zone === zone);
+  const more = document.getElementById("zone-more");
+  const every = SPECIES.filter(sp => sp.zone === zone);
+  const items = all ? every : every.slice(0, ZONE_PREVIEW);
+  more.hidden = every.length <= ZONE_PREVIEW;
+  more.textContent = all ? "Show fewer" : `Show all ${every.length} ${zone} trees`;
+  more.onclick = () => renderZone(zone, false, !all);
   list.innerHTML = items.map(sp => `
     <li>
       <span class="band-elev">${sp.elev[1] <= 5 ? "Tidal" : `${fmt(sp.elev[0])}–${fmt(sp.elev[1])} m`}</span>
-      <span class="band-name">${esc(sp.name)}<i>${esc(sp.sci)} · ${esc(sp.height)}</i></span>
+      <span class="band-name">${esc(sp.name)}<i>${sp.sci !== sp.name ? `${esc(sp.sci)} · ` : ""}${esc(sp.height)}</i></span>
       <span class="band-use">${sp.uses.map(u => USE_WORDS[u]).join(", ")}</span>
     </li>`).join("");
   if (animate) { list.classList.remove("swap"); void list.offsetWidth; list.classList.add("swap"); }
