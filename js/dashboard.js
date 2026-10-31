@@ -81,12 +81,32 @@ function restoreSite() {
 }
 
 /* ---------- Results ---------- */
+const PHOTO_KIND = { p: "Photo", i: "Illustration", s: "Pressed specimen" };
+
+function treePhoto(sp) {
+  const p = TREE_PHOTOS[sp.id];
+  if (!p) return `<p class="sheet-nophoto">No free photo of ${esc(sp.name)} yet.</p>`;
+  const kind = PHOTO_KIND[p.kind];
+  const license = p.licenseUrl ? `<a href="${esc(p.licenseUrl)}" target="_blank" rel="noopener">${esc(p.license)}</a>` : esc(p.license);
+  return `
+    <figure class="sheet-photo is-${p.kind}">
+      <img src="${p.src}" alt="${kind} of ${esc(sp.name)}" width="${p.w}" height="${p.h}" loading="lazy" decoding="async">
+      <figcaption>${kind}: <a href="${esc(p.source)}" target="_blank" rel="noopener">${esc(p.author)}</a>, ${license}, via Wikimedia Commons</figcaption>
+    </figure>`;
+}
+
+// A small square beside a name in lists; an empty square keeps the rows aligned.
+const treeThumb = sp => TREE_PHOTOS[sp.id]
+  ? `<img class="tree-thumb" src="${TREE_PHOTOS[sp.id].thumb}" alt="" width="160" height="160" loading="lazy" decoding="async">`
+  : `<span class="tree-thumb" aria-hidden="true"></span>`;
+
 const matchWord = fit => fit >= 85 ? "Strong match" : fit >= 70 ? "Good match" : fit >= 55 ? "Fair match" : "Weak match";
 
 function sheetBody(sp) {
   return `
     <div class="sheet-cols">
       <div><h4 class="sheet-h">About this tree</h4>
+      ${treePhoto(sp)}
       <dl class="sheet-dl">
         <div><dt>Native status</dt><dd>${esc(nativeText(sp))}</dd></div>
         <div><dt>Characteristics</dt><dd>${esc(sp.traits)}</dd></div>
@@ -166,8 +186,11 @@ function render(animate) {
     <li class="sheet">
       <div class="sheet-head">
         <button class="sheet-toggle" type="button" aria-expanded="false" aria-controls="sheet-${r.sp.id}">
-          <span class="sheet-name">${esc(r.sp.name)}</span>
-          <span class="sheet-sci">${esc(r.sp.sci)} · ${r.sp.native}</span>
+          ${treeThumb(r.sp)}
+          <span class="sheet-title">
+            <span class="sheet-name">${esc(r.sp.name)}</span>
+            <span class="sheet-sci">${esc(r.sp.sci)} · ${r.sp.native}</span>
+          </span>
         </button>
         <p class="sheet-why">${esc([...r.why.slice(0, 2), ...r.miss.slice(0, 1)].join(". "))}.</p>
         <p class="sheet-fit">${isPremium() ? `${r.fit}%` : matchWord(r.fit)}</p>
@@ -220,6 +243,7 @@ function renderCompare() {
       <table class="cmp-table">
         <thead><tr><th scope="col"><span class="sr-only">Factor</span></th>${picks.map(r => `<th scope="col"><span class="cmp-name">${esc(r.sp.name)}</span><span class="cmp-sci">${esc(r.sp.sci)}</span></th>`).join("")}</tr></thead>
         <tbody>
+          ${row("Photo", r => TREE_PHOTOS[r.sp.id] ? `<img class="cmp-photo" src="${TREE_PHOTOS[r.sp.id].thumb}" alt="${esc(r.sp.name)}" width="160" height="160" loading="lazy">` : `<span class="cmp-nophoto">No free photo yet</span>`)}
           ${row("Site suitability", r => `<b class="cmp-fit">${r.fit}%</b>`)}
           ${row("Growth", r => `${r.sp.growth} growth, ${esc(r.sp.height)} tall`)}
           ${row("Soil", r => esc(cap(r.sp.soils.map(x => SOIL_WORDS[x]).join(", "))))}

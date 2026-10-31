@@ -166,9 +166,11 @@
   padding: 16px 24px;
 }
 .sheet-toggle {
-  display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
+  display: flex; align-items: center; gap: 14px;
   background: none; border: 0; padding: 4px 0; cursor: pointer; text-align: left;
 }
+.sheet-title { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 0; }
+.tree-thumb { flex: none; display: block; width: 56px; height: 56px; object-fit: cover; background: var(--sage-2); }
 .sheet-name { font: 600 22px/1.2 var(--display); letter-spacing: -0.02em; display: inline-flex; align-items: center; gap: 10px; }
 .sheet-name::after { content: "+"; font: 500 22px/1 var(--text); color: var(--green); transition: transform .3s var(--ease); }
 .sheet-toggle[aria-expanded="true"] .sheet-name::after { transform: rotate(45deg); }
@@ -407,4 +409,21 @@
   .nursery-tools .btn { margin-left: 0; width: 100%; }
   .nursery-fields { grid-template-columns: 1fr; }
   .nursery-form { padding: 20px 16px; }
+}
+
+/* ---------- Tree photos ---------- */
+.sheet-photo { margin: 0 0 16px; }
+.sheet-photo img { display: block; width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; background: var(--sage-2); }
+.sheet-photo.is-i img, .sheet-photo.is-s img { object-fit: contain; background: #FFFFFF; }
+.sheet-photo figcaption { margin-top: 6px; font-size: 14px; line-height: 1.4; color: var(--soft); }
+.sheet-photo figcaption a { color: inherit; text-underline-offset: 3px; }
+.sheet-photo figcaption a:hover { color: var(--ink); }
+.tag .sheet-photo figcaption { color: rgba(251, 247, 240, .78); }
+.tag .sheet-photo figcaption a:hover { color: var(--on-dark); }
+.sheet-nophoto { margin: 0 0 16px; padding: 14px 16px; font-size: 14px; color: var(--soft); background: var(--sage); }
+.tag .sheet-nophoto { color: rgba(251, 247, 240, .78); background: rgba(251, 247, 240, .08); }
+.cmp-photo { display: block; width: 120px; height: 120px; object-fit: cover; }
+.cmp-nophoto { font-size: 14px; color: var(--soft); }
+@media (max-width: 760px) {
+  .tree-thumb { width: 48px; height: 48px; }
 }
