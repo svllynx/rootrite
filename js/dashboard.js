@@ -29,6 +29,7 @@ async function boot() {
   render(true);
   document.body.classList.remove("is-checking");
   SiteMap.init(saved);
+  Nurseries.init();
 
   rrClient().auth.onAuthStateChange(event => {
     if (event === "SIGNED_OUT") location.replace("auth.html?mode=login");
@@ -98,6 +99,7 @@ function sheetBody(sp) {
         <div><dt>Water</dt><dd>${esc(sp.water)}</dd></div>
         <div><dt>Basic care</dt><dd>${esc(sp.care)}</dd></div>
         <div><dt>Before you plant</dt><dd>${esc(sp.plant)}</dd></div>
+        <div><dt>Where to get seedlings</dt><dd data-seedlings="${sp.id}"></dd></div>
       </dl></div>
     </div>`;
 }
@@ -193,6 +195,7 @@ function render(animate) {
   state.lastShown = shown;
   state.compare = state.compare.filter(id => shown.some(r => r.sp.id === id));
   renderCompare();
+  if (typeof Nurseries !== "undefined") Nurseries.update();
 }
 
 /* ---------- Comparison (Premium) ---------- */

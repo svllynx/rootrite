@@ -296,7 +296,8 @@
   .auth-box { padding: 28px 0; }
 
   .app-bar { flex-wrap: wrap; gap: 8px 16px; padding: 10px var(--margin); }
-  .app-nav { order: 3; width: 100%; overflow-x: auto; gap: 18px; margin-right: 0; }
+  .app-nav { order: 3; width: 100%; overflow-x: auto; gap: 18px; margin-right: 0; scrollbar-width: none; }
+  .app-nav a { white-space: nowrap; flex: 0 0 auto; }
   .app-account { margin-left: auto; gap: 12px; }
   .app-bar [data-upgrade] { display: none; }
 
@@ -351,3 +352,59 @@
 .auth-credit a { color: inherit; text-underline-offset: 3px; }
 .plan-cost { text-align: right; }
 .plan-per { margin-top: 6px; font-size: 14px; }
+
+/* ---------- Where to get seedlings ---------- */
+.nursery-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.nursery-filter { font-size: 16px; color: var(--soft); }
+.nursery-tools select, .nursery-fields select {
+  min-height: 44px; padding: 0 12px; font: 400 18px/1.2 var(--text); color: var(--ink);
+  background: var(--paper); border: 2px solid var(--sage-2); border-radius: 0;
+}
+.nursery-tools select { min-width: 220px; }
+.nursery-tools .btn { margin-left: auto; min-height: 44px; }
+.nursery-wrap { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 16px; margin-top: 16px; }
+.nursery-map { isolation: isolate; min-height: 460px; background: var(--sage-2); font: 400 14px/1.3 var(--text); }
+.nursery-map .leaflet-control-attribution { font-size: 11px; }
+.nursery-list { list-style: none; margin: 0; padding: 0; max-height: 460px; overflow-y: auto; display: grid; gap: 4px; align-content: start; }
+.nursery { display: grid; grid-template-columns: 1fr auto; gap: 4px 16px; padding: 16px; background: var(--sage); }
+.nursery:nth-child(even) { background: var(--sage-2); }
+.nursery.is-featured { background: #DCEBCF; }
+.nursery.is-flash { animation: nurseryFlash 1.2s var(--ease); }
+@keyframes nurseryFlash { 0%, 40% { background: var(--sky); } }
+.nursery-name { font: 600 18px/1.25 var(--display); letter-spacing: -0.01em; }
+.nursery-meta { margin-top: 2px; font-size: 14px; color: var(--soft); }
+.nursery-stock { margin-top: 6px; font-size: 16px; }
+.nursery-has { color: var(--green); }
+.nursery-pending { color: var(--bark); }
+.nursery-km { font: 600 18px/1.25 var(--display); color: var(--green); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.nursery-actions { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 20px; margin-top: 6px; font: 500 16px/1.3 var(--text); }
+.nursery-actions a { color: var(--green); text-underline-offset: 4px; text-decoration-thickness: 2px; }
+.nursery-actions a:hover { color: var(--ink); }
+.nursery-empty { padding: 20px 16px; font-size: 16px; color: var(--soft); background: var(--sage); }
+.nursery-note { margin-top: 12px; font-size: 14px; color: var(--soft); }
+.nursery-form { display: grid; gap: 16px; margin-top: 16px; padding: 28px; background: var(--sage); }
+.nursery-form-title { font: 600 var(--t-sub)/1.1 var(--display); letter-spacing: -0.02em; }
+.nursery-form-lead { font-size: 16px; max-width: 60ch; }
+.nursery-place { font: 500 16px/1.3 var(--text); color: var(--bark); }
+.nursery-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 20px; }
+.nursery-fields select { width: 100%; }
+.nursery-stock-field input { width: 100%; min-height: 44px; padding: 0 12px; font: 400 16px/1.2 var(--text); background: var(--paper); border: 2px solid var(--sage-2); border-radius: 0; }
+.stock-picks { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 2px 16px; max-height: 220px; overflow-y: auto; margin-top: 8px; padding: 8px 12px; background: var(--paper); }
+.stock-picks label { display: flex; align-items: center; gap: 8px; min-height: 36px; font-size: 16px; cursor: pointer; }
+.stock-picks input { width: 18px; height: 18px; accent-color: var(--green); }
+.nursery-form-actions { display: flex; align-items: center; gap: 20px; }
+.pin-mark-new span { background: var(--green); }
+.sheet-dl [data-seedlings] .link-btn { margin-left: 4px; font-size: 16px; }
+.tag [data-seedlings] .link-btn { color: var(--on-dark); }
+.tag [data-seedlings] .link-btn:hover { color: var(--sky); }
+@media (max-width: 900px) {
+  .nursery-wrap { grid-template-columns: 1fr; }
+  .nursery-map { min-height: 300px; }
+  .nursery-list { max-height: none; }
+}
+@media (max-width: 760px) {
+  .nursery-tools select { flex: 1; min-width: 0; }
+  .nursery-tools .btn { margin-left: 0; width: 100%; }
+  .nursery-fields { grid-template-columns: 1fr; }
+  .nursery-form { padding: 20px 16px; }
+}

@@ -25,6 +25,7 @@
   </a>
   <nav class="app-nav" aria-label="App">
     <a href="#match">Site matcher</a>
+    <a href="#nurseries">Nurseries</a>
     <a href="#compare">Compare</a>
     <a href="#scan">AI Site Scan</a>
     <a href="#plan">Plan</a>
@@ -160,6 +161,56 @@
     </div>
   </section>
 
+  <!-- Where to get seedlings: RootRite's nursery directory and OpenStreetMap -->
+  <section class="app-section nurseries" id="nurseries" aria-labelledby="nurseries-title">
+    <div class="app-section-head">
+      <h2 id="nurseries-title" class="h2">Where to get seedlings</h2>
+      <p class="app-section-lead">Nurseries near your pin, nearest first. Ones that list the tree in stock come first; for the rest, call ahead.</p>
+    </div>
+    <div class="nursery-tools">
+      <label class="nursery-filter" for="nursery-species">Tree</label>
+      <select id="nursery-species"></select>
+      <button class="btn btn-ink btn-sm" type="button" id="nursery-add">Suggest a nursery</button>
+    </div>
+    <div class="nursery-wrap">
+      <div class="nursery-map" id="nursery-map" aria-label="Map of nurseries near your site"></div>
+      <ol class="nursery-list" id="nursery-list" aria-live="polite"></ol>
+    </div>
+
+    <form class="nursery-form" id="nursery-form" hidden novalidate>
+      <h3 class="nursery-form-title">Suggest a nursery</h3>
+      <p class="nursery-form-lead">Know a nursery that grows native trees? Add it and we'll check it before it's listed for everyone.</p>
+      <p class="nursery-place" id="nursery-place-hint" aria-live="polite">Tap the nursery's location on the map above.</p>
+      <div class="nursery-fields">
+        <div class="input"><label for="nname">Name</label><input id="nname" name="nname" maxlength="120" required placeholder="For example, CENRO Tublay Nursery"></div>
+        <div class="input"><label for="kind">Type</label>
+          <select id="kind" name="kind">
+            <option value="denr">DENR or CENRO nursery</option>
+            <option value="lgu">LGU nursery</option>
+            <option value="school">School or university nursery</option>
+            <option value="ngo">NGO nursery</option>
+            <option value="private" selected>Private nursery</option>
+          </select></div>
+        <div class="input"><label for="municipality">Town or city</label><input id="municipality" name="municipality" maxlength="80"></div>
+        <div class="input"><label for="province">Province</label><input id="province" name="province" maxlength="80"></div>
+        <div class="input"><label for="phone">Phone</label><input id="phone" name="phone" type="tel" maxlength="40" placeholder="0917 123 4567"></div>
+        <div class="input"><label for="hours">Opening hours</label><input id="hours" name="hours" maxlength="80" placeholder="Mon–Fri, 8 am–5 pm"></div>
+      </div>
+      <fieldset class="field nursery-stock-field">
+        <legend>Native trees in stock</legend>
+        <input id="nursery-stock-filter" type="search" placeholder="Filter trees" aria-label="Filter trees">
+        <div class="stock-picks" id="nursery-stock"></div>
+      </fieldset>
+      <div class="input"><label for="notes">Notes</label><input id="notes" name="notes" maxlength="400" placeholder="For example: free seedlings for school planting drives"></div>
+      <p class="notice" id="nursery-error" role="alert" hidden></p>
+      <div class="nursery-form-actions">
+        <button class="btn btn-ink" type="submit">Send for review</button>
+        <button class="link-btn" type="button" id="nursery-cancel">Cancel</button>
+      </div>
+    </form>
+    <p class="nursery-note">Nursery locations also come from OpenStreetMap (&copy; OpenStreetMap contributors). Stock changes, so call before you travel.</p>
+  </section>
+
   <!-- Premium: species comparison -->
   <section class="app-section" id="compare" aria-labelledby="compare-title">
     <div class="app-section-head">
@@ -248,6 +299,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="js/species.js"></script>
 <script src="js/sitemap.js"></script>
+<script src="js/nurseries.js"></script>
 <script src="js/dashboard.js"></script>
 </body>
 </html>
