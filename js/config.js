@@ -4,7 +4,7 @@
   The anon key is meant to be public; the database rules in supabase/schema.sql protect the data.
 */
 window.RR_CONFIG = {
-  supabaseUrl: "YOUR_SUPABASE_PROJECT_URL",
-  supabaseAnonKey: "YOUR_SUPABASE_ANON_KEY",
+  supabaseUrl: "https://mvobkmfazkwwkrhimxfe.supabase.co",
+  supabaseAnonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im12b2JrbWZhemt3d2tyaGlteGZlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM0NDQ1MzYsImV4cCI6MjEwOTAyMDUzNn0.8ZWcs0mHZ-V1kFA8pdJm5x8v0_gnVNwjRBjp4k1ZnIg",
   premiumPrice: "₱75"
 };
