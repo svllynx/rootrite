@@ -332,6 +332,7 @@ input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.15); }
 .team { margin-top: var(--gap-section); padding: 0 var(--margin); display: grid; grid-template-columns: var(--axis) 1fr; }
 .team-list { display: grid; grid-template-columns: 1fr 1fr; gap: 40px 32px; }
 .team-list li { display: flex; flex-direction: column; gap: 4px; }
+.team-list li:first-child { grid-column: 1 / -1; } /* five people: the CEO leads, then two rows of two */
 .team-name { font: 600 var(--t-sub)/1.1 var(--display); letter-spacing: -0.03em; }
 .team-role { font-size: 18px; color: var(--soft); }
 
