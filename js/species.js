@@ -600,7 +600,8 @@ function zoneName(s) {
 function describe(s) {
   const sun = { full: "sunny", partial: "partly shaded", shade: "shaded" }[s.sun];
   const slope = ["flat", "gently sloping", "steep"][s.slope];
-  const rain = s.rain < 1500 ? "under 1,500 mm" : s.rain > 2500 ? "over 2,500 mm" : "about 2,000 mm";
+  const rain = ![1200, 2000, 3200].includes(s.rain) ? `about ${fmt(s.rain)} mm` // measured from a map pin
+    : s.rain < 1500 ? "under 1,500 mm" : s.rain > 2500 ? "over 2,500 mm" : "about 2,000 mm";
   const where = s.location ? ` in ${s.location}` : "";
   if (s.soil === "tidal") return `A ${sun} stretch of tidal mud${where}, flooded by the sea every day.`;
   return `A ${sun}, ${slope} ${zoneName(s)} site${where} at ${fmt(s.elev)} m, with ${MOIST_WORDS[s.moist].split(",")[0]} ${SOIL_WORDS[s.soil]} soil and ${rain} of rain a year.`;

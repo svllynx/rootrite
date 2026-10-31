@@ -25,9 +25,10 @@ async function boot() {
   state.account = account;
   $("user-name").textContent = account.name;
   applyPlan(account.plan);
-  restoreSite();
+  const saved = restoreSite();
   render(true);
   document.body.classList.remove("is-checking");
+  SiteMap.init(saved);
 
   rrClient().auth.onAuthStateChange(event => {
     if (event === "SIGNED_OUT") location.replace("auth.html?mode=login");
@@ -60,20 +61,22 @@ function readSite() {
 const siteKey = () => `rootrite-site-${state.account?.user.id || "guest"}`;
 
 function saveSite(s) {
-  try { localStorage.setItem(siteKey(), JSON.stringify(s)); } catch (e) { /* storage unavailable */ }
+  try { localStorage.setItem(siteKey(), JSON.stringify({ ...s, ...SiteMap.snapshot() })); } catch (e) { /* storage unavailable */ }
 }
 
 function restoreSite() {
   let s = null;
   try { s = JSON.parse(localStorage.getItem(siteKey()) || "null"); } catch (e) { s = null; }
-  if (!s) return;
+  if (!s) return null;
   const form = $("site");
+  if (s.rain && ![1200, 2000, 3200].includes(s.rain)) SiteMap.setRain(s.rain);
   form.location.value = s.location || "";
   form.elev.value = s.elev ?? 150;
   ["soil", "moist", "rain", "slope", "sun", "space", "purpose"].forEach(k => {
     const input = form.querySelector(`input[name="${k}"][value="${s[k]}"]`);
     if (input) input.checked = true;
   });
+  return s;
 }
 
 /* ---------- Results ---------- */

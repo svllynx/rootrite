@@ -10,6 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@500;600&family=Work+Sans:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <link rel="stylesheet" href="styles.css">
 <link rel="stylesheet" href="app.css">
 </head>
@@ -54,6 +55,20 @@
       <div class="match-main">
         <h1 id="match-title" class="h2">Describe your site</h1>
         <form id="site" class="site-form" novalidate>
+          <fieldset class="field field-wide pin-field">
+            <legend>Find your site on the map</legend>
+            <div class="pin-tools">
+              <input id="pin-q" type="search" maxlength="80" autocomplete="off" placeholder="Search a town or barangay" aria-label="Search a town or barangay">
+              <button class="btn btn-ink btn-sm" type="button" id="pin-search">Search</button>
+              <button class="btn btn-line btn-sm" type="button" id="pin-locate">Use my location</button>
+            </div>
+            <ul class="pin-hits" id="pin-hits" hidden></ul>
+            <div class="pin-map" id="pin-map" aria-label="Map of the Philippines. Tap your planting site to drop a pin."></div>
+            <p class="pin-help" id="pin-help" aria-live="polite">Tap the map where you'll plant. RootRite reads the elevation, rainfall, soil and slope there and fills them in for you.</p>
+            <dl class="pin-readings" id="pin-readings" hidden></dl>
+            <p class="pin-note" id="pin-note" hidden>Estimates from satellite terrain (Copernicus), ten years of rainfall records (ERA5, via Open-Meteo) and soil maps (SoilGrids, ISRIC). Change anything you know better. Sunlight, space and purpose are yours to choose below.</p>
+          </fieldset>
+
           <div class="field field-wide input">
             <label for="location">Location</label>
             <input id="location" name="location" type="text" maxlength="80" autocomplete="off" placeholder="Town or province, for example Tublay, Benguet">
@@ -93,6 +108,7 @@
               <label><input type="radio" name="rain" value="1200"><span>Dry, under 1,500 mm</span></label>
               <label><input type="radio" name="rain" value="2000" checked><span>Moderate</span></label>
               <label><input type="radio" name="rain" value="3200"><span>Wet, over 2,500 mm</span></label>
+              <label id="rain-map-chip" hidden><input type="radio" name="rain" value="" id="rain-map"><span id="rain-map-text">From your pin</span></label>
             </div>
           </fieldset>
 
@@ -229,7 +245,9 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="js/config.js"></script>
 <script src="js/account.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="js/species.js"></script>
+<script src="js/sitemap.js"></script>
 <script src="js/dashboard.js"></script>
 </body>
 </html>
