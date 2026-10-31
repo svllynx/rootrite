@@ -1,4 +1,4 @@
-/* TreeMatch: species data, the site matcher, the zone list and the motion layer. */
+/* RootRite: species data, the site matcher, the zone list and the motion layer. */
 document.documentElement.classList.add("js");
 
 /*
