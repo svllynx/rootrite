@@ -4,10 +4,10 @@
 .btn-block { width: 100%; }
 .btn-sm { min-height: 40px; padding: 0 16px; font-size: 14px; }
 .btn-sky { background: var(--sky); color: var(--ink); }
-.btn-sky:hover { background: #A3D7F4; }
+.btn-sky:hover { background: #A0D6F4; }
 .btn-line { background: var(--paper); color: var(--ink); }
 .btn-line:hover { background: var(--sage-2); }
-.btn-ghost { background: rgba(250, 246, 240, .14); color: var(--on-dark); }
+.btn-ghost { background: rgba(251, 247, 240, .14); color: var(--on-dark); }
 .btn:disabled { opacity: .55; cursor: not-allowed; transform: none; }
 .link-btn {
   background: none; border: 0; padding: 4px 0; cursor: pointer;
@@ -105,7 +105,7 @@
 .tag-sheet { grid-column: 1 / -1; margin-top: 24px; padding: 24px; background: var(--green-2); }
 .tag-foot { grid-column: 1 / -1; margin-top: 20px; }
 .tag .sheet-h { color: var(--on-dark); }
-.tag .sheet-dl dt { color: rgba(250, 246, 240, .72); }
+.tag .sheet-dl dt { color: rgba(251, 247, 240, .72); }
 .tag .bars .bar-track { background: var(--green-2); }
 .tag .bars .bar-fill { background: var(--sky); }
 .tag .bars .bar-fill.is-low { background: #C9A27E; }
