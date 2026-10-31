@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Site matcher · RootRite</title>
+<meta name="description" content="Match native Philippine tree species to your planting site.">
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/png" href="assets/logo-mark.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@500;600&family=Work+Sans:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="app.css">
+</head>
+<body class="app-page is-checking" data-plan="free">
+
+<a class="skip" href="#match">Skip to the matcher</a>
+
+<header class="app-bar">
+  <a class="app-brand" href="index.html" aria-label="RootRite home">
+    <img src="assets/logo-mark.png" alt="" width="378" height="553">
+    <span>RootRite</span>
+  </a>
+  <nav class="app-nav" aria-label="App">
+    <a href="#match">Site matcher</a>
+    <a href="#compare">Compare</a>
+    <a href="#scan">AI Site Scan</a>
+    <a href="#plan">Plan</a>
+  </nav>
+  <div class="app-account">
+    <p class="app-user"><span id="user-name">Your account</span><span class="plan-badge" id="plan-badge">Free</span></p>
+    <button class="btn btn-ink btn-sm" type="button" data-upgrade data-free-only>Upgrade</button>
+    <button class="link-btn" type="button" id="sign-out">Log out</button>
+  </div>
+</header>
+
+<div class="app-gate" id="gate" role="status" aria-live="polite">
+  <p id="gate-text">Checking your account…</p>
+</div>
+
+<main class="app-main" id="app">
+
+  <!-- The matcher -->
+  <section class="match app-match" id="match" aria-labelledby="match-title">
+    <div class="match-inner">
+      <aside class="match-read" aria-live="polite">
+        <p class="read-label">Your site</p>
+        <p class="read-sentence" id="readout">A sunny, gently sloping lowland site at 150 m, with moist loam soil and about 2,000 mm of rain a year.</p>
+        <p class="read-temp"><span id="temp">26.5</span> °C average, estimated</p>
+        <p class="read-count" id="count"></p>
+      </aside>
+
+      <div class="match-main">
+        <h1 id="match-title" class="h2">Describe your site</h1>
+        <form id="site" class="site-form" novalidate>
+          <div class="field field-wide input">
+            <label for="location">Location</label>
+            <input id="location" name="location" type="text" maxlength="80" autocomplete="off" placeholder="Town or province, for example Tublay, Benguet">
+          </div>
+
+          <fieldset class="field field-wide">
+            <legend>Elevation</legend>
+            <div class="range-row">
+              <input type="range" id="elev" name="elev" min="0" max="2700" step="10" value="150" aria-describedby="elev-out">
+              <output id="elev-out" for="elev">150 m</output>
+            </div>
+          </fieldset>
+
+          <fieldset class="field">
+            <legend>Soil</legend>
+            <div class="chips">
+              <label><input type="radio" name="soil" value="clay"><span>Clay</span></label>
+              <label><input type="radio" name="soil" value="loam" checked><span>Loam</span></label>
+              <label><input type="radio" name="soil" value="sandy"><span>Sandy</span></label>
+              <label><input type="radio" name="soil" value="rocky"><span>Rocky or limestone</span></label>
+              <label><input type="radio" name="soil" value="tidal"><span>Tidal mud</span></label>
+            </div>
+          </fieldset>
+
+          <fieldset class="field" id="moist-field">
+            <legend>Moisture and drainage</legend>
+            <div class="chips">
+              <label><input type="radio" name="moist" value="dry"><span>Dry, drains fast</span></label>
+              <label><input type="radio" name="moist" value="moist" checked><span>Moist, drains well</span></label>
+              <label><input type="radio" name="moist" value="wet"><span>Wet or waterlogged</span></label>
+            </div>
+          </fieldset>
+
+          <fieldset class="field">
+            <legend>Rainfall a year</legend>
+            <div class="chips">
+              <label><input type="radio" name="rain" value="1200"><span>Dry, under 1,500 mm</span></label>
+              <label><input type="radio" name="rain" value="2000" checked><span>Moderate</span></label>
+              <label><input type="radio" name="rain" value="3200"><span>Wet, over 2,500 mm</span></label>
+            </div>
+          </fieldset>
+
+          <fieldset class="field">
+            <legend>Slope</legend>
+            <div class="chips">
+              <label><input type="radio" name="slope" value="0"><span>Flat</span></label>
+              <label><input type="radio" name="slope" value="1" checked><span>Gentle</span></label>
+              <label><input type="radio" name="slope" value="2"><span>Steep</span></label>
+            </div>
+          </fieldset>
+
+          <fieldset class="field">
+            <legend>Sunlight</legend>
+            <div class="chips">
+              <label><input type="radio" name="sun" value="full" checked><span>Full sun</span></label>
+              <label><input type="radio" name="sun" value="partial"><span>Part shade</span></label>
+              <label><input type="radio" name="sun" value="shade"><span>Mostly shade</span></label>
+            </div>
+          </fieldset>
+
+          <fieldset class="field">
+            <legend>Space</legend>
+            <div class="chips">
+              <label><input type="radio" name="space" value="S"><span>House lot</span></label>
+              <label><input type="radio" name="space" value="M"><span>Large yard</span></label>
+              <label><input type="radio" name="space" value="L" checked><span>Open land</span></label>
+            </div>
+          </fieldset>
+
+          <fieldset class="field field-wide">
+            <legend>Planting purpose</legend>
+            <div class="chips">
+              <label><input type="radio" name="purpose" value="any" checked><span>Anything</span></label>
+              <label><input type="radio" name="purpose" value="shade"><span>Shade</span></label>
+              <label><input type="radio" name="purpose" value="fruit"><span>Fruit</span></label>
+              <label><input type="radio" name="purpose" value="timber"><span>Timber</span></label>
+              <label><input type="radio" name="purpose" value="erosion"><span>Hold a slope</span></label>
+              <label><input type="radio" name="purpose" value="coast"><span>Protect a coast</span></label>
+              <label><input type="radio" name="purpose" value="restore"><span>Reforest</span></label>
+              <label><input type="radio" name="purpose" value="ornamental"><span>Ornamental</span></label>
+            </div>
+          </fieldset>
+        </form>
+
+        <div class="results" id="results" aria-live="polite"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Premium: species comparison -->
+  <section class="app-section" id="compare" aria-labelledby="compare-title">
+    <div class="app-section-head">
+      <h2 id="compare-title" class="h2">Compare species</h2>
+      <p class="app-section-lead" data-premium-only>Tick <b>Compare</b> on up to three species in your results to see them side by side.</p>
+    </div>
+    <div id="compare-body"></div>
+  </section>
+
+  <!-- Premium: AI site scan, coming soon -->
+  <section class="app-section scan" id="scan" aria-labelledby="scan-title">
+    <div class="scan-inner">
+      <figure class="scan-photo ph"><img src="assets/batad-terraces.jpg" alt="" width="1920" height="1442" loading="lazy"></figure>
+      <div class="scan-text">
+        <h2 id="scan-title" class="h2">AI Site Scan is coming</h2>
+        <p class="app-section-lead">A Premium feature, in development. Upload photos of your planting site and RootRite will read the soil, slope, light and moisture from them, then tailor your recommendations.</p>
+        <button class="btn btn-ghost" type="button" disabled>Upload site photos</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Plan -->
+  <section class="app-section" id="plan" aria-labelledby="plan-title">
+    <div class="app-section-head">
+      <h2 id="plan-title" class="h2">Your plan</h2>
+      <p class="app-section-lead" id="plan-status">You're on the Free plan.</p>
+    </div>
+    <div class="plans">
+      <article class="plan plan-free" aria-labelledby="free-name">
+        <div class="plan-top">
+          <h3 class="plan-name" id="free-name">Free</h3>
+          <p class="plan-price">₱0</p>
+        </div>
+        <div class="plan-groups">
+          <div><h4>Basic species information</h4><p>Common name, scientific name, native status, general characteristics, habitat and common uses.</p></div>
+          <div><h4>Basic planting tips</h4><p>Sunlight, water requirements, basic care and general planting considerations.</p></div>
+          <div><h4>Basic site assessment</h4><p>Location, elevation, soil, slope, sunlight, moisture and drainage, and planting purpose.</p></div>
+          <div><h4>Top 3 native species</h4><p>The three best-suited native trees for your site.</p></div>
+        </div>
+        <p class="plan-current" data-free-only>Your current plan</p>
+        <button class="btn btn-line" type="button" id="downgrade" data-premium-only>Switch to Free</button>
+      </article>
+
+      <article class="plan plan-premium" aria-labelledby="premium-name">
+        <div class="plan-top">
+          <h3 class="plan-name" id="premium-name">Premium</h3>
+          <div class="plan-cost"><p class="plan-price" data-price>₱75</p><p class="plan-per">a month</p></div>
+        </div>
+        <p class="plan-plus">Everything in Free, plus:</p>
+        <div class="plan-groups">
+          <div><h4>Detailed suitability scores</h4><p>For example, Narra at 92% site suitability, with how it matches your soil, elevation, moisture, sunlight and more.</p></div>
+          <div><h4>Top 10+ native species</h4><p>More alternatives instead of only three.</p></div>
+          <div><h4>Species comparison</h4><p>Side by side on site suitability, growth, soil, water, sunlight, mature size and intended use.</p></div>
+          <div><h4>AI Site Scan</h4><p><span class="soon">Coming soon</span> Personalised recommendations from photos of your site.</p></div>
+        </div>
+        <button class="btn btn-sky" type="button" data-upgrade data-free-only>Upgrade to Premium</button>
+        <p class="plan-current" data-premium-only>Your current plan</p>
+      </article>
+    </div>
+  </section>
+</main>
+
+<!-- Demo checkout -->
+<dialog class="checkout" id="checkout" aria-labelledby="checkout-title">
+  <form method="dialog" class="checkout-inner" id="checkout-form">
+    <h2 id="checkout-title" class="checkout-title">Upgrade to Premium</h2>
+    <p class="checkout-price"><span data-price>₱75</span> a month</p>
+    <ul class="checkout-list">
+      <li>Detailed suitability scores for every species</li>
+      <li>Top 10+ native species for your site</li>
+      <li>Side-by-side species comparison</li>
+      <li>AI Site Scan when it launches</li>
+    </ul>
+    <p class="notice notice-warn">Demo checkout. No payment is taken and no card details are needed. Your account switches to Premium straight away.</p>
+    <p class="notice" id="checkout-message" role="status" aria-live="polite" hidden></p>
+    <div class="checkout-actions">
+      <button class="btn btn-ink" type="button" id="confirm-upgrade">Activate Premium</button>
+      <button class="link-btn" value="cancel">Not now</button>
+    </div>
+  </form>
+</dialog>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/account.js"></script>
+<script src="js/species.js"></script>
+<script src="js/dashboard.js"></script>
+</body>
+</html>

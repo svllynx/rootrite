@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Log in · RootRite</title>
+<meta name="description" content="Log in or create a free RootRite account to match native tree species to your planting site.">
+<link rel="icon" type="image/png" href="assets/logo-mark.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@500;600&family=Work+Sans:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="app.css">
+</head>
+<body class="auth-page">
+
+<div class="auth">
+  <aside class="auth-side" aria-hidden="true">
+    <figure class="auth-photo ph"><video src="assets/wind-in-tree.webm" poster="assets/wind-in-tree-poster.jpg" autoplay muted loop playsinline preload="metadata"></video></figure>
+    <div class="auth-side-text">
+      <p class="auth-side-line">Right tree,<br>right place.</p>
+      <p class="auth-side-note">Describe your planting site once. RootRite names the native trees that will grow there.</p>
+    </div>
+  </aside>
+
+  <main class="auth-main">
+    <a class="auth-brand" href="index.html" aria-label="RootRite home">
+      <img src="assets/logo-mark.png" alt="" width="378" height="553">
+      <span>RootRite</span>
+    </a>
+
+    <div class="auth-box">
+      <div class="auth-switch" role="tablist" aria-label="Account">
+        <button type="button" role="tab" id="tab-login" aria-selected="true" data-mode="login">Log in</button>
+        <button type="button" role="tab" id="tab-register" aria-selected="false" data-mode="register" tabindex="-1">Create account</button>
+      </div>
+
+      <!-- Log in -->
+      <form class="auth-form" id="form-login" data-mode="login" novalidate>
+        <h1 class="auth-title">Welcome back</h1>
+        <div class="input">
+          <label for="login-email">Email</label>
+          <input id="login-email" name="email" type="email" autocomplete="email" required>
+        </div>
+        <div class="input">
+          <label for="login-password">Password</label>
+          <input id="login-password" name="password" type="password" autocomplete="current-password" required>
+        </div>
+        <button class="btn btn-ink btn-block" type="submit">Log in</button>
+        <button class="link-btn" type="button" data-go="forgot">Forgot your password?</button>
+      </form>
+
+      <!-- Register -->
+      <form class="auth-form" id="form-register" data-mode="register" novalidate hidden>
+        <h1 class="auth-title">Create your free account</h1>
+        <div class="input">
+          <label for="reg-name">Full name</label>
+          <input id="reg-name" name="fullname" type="text" autocomplete="name" required>
+        </div>
+        <div class="input">
+          <label for="reg-email">Email</label>
+          <input id="reg-email" name="email" type="email" autocomplete="email" required>
+        </div>
+        <div class="input">
+          <label for="reg-password">Password</label>
+          <input id="reg-password" name="password" type="password" autocomplete="new-password" minlength="8" required aria-describedby="reg-pw-hint">
+          <p class="input-hint" id="reg-pw-hint">At least 8 characters.</p>
+        </div>
+        <div class="input">
+          <label for="reg-confirm">Confirm password</label>
+          <input id="reg-confirm" name="confirm" type="password" autocomplete="new-password" required>
+        </div>
+        <button class="btn btn-ink btn-block" type="submit">Create account</button>
+        <p class="auth-fine">You start on the Free plan. Upgrade to Premium any time for <span data-price>₱75</span> a month.</p>
+      </form>
+
+      <!-- Forgot password -->
+      <form class="auth-form" id="form-forgot" data-mode="forgot" novalidate hidden>
+        <h1 class="auth-title">Reset your password</h1>
+        <p class="auth-lead">Enter your email and we'll send you a link to set a new password.</p>
+        <div class="input">
+          <label for="forgot-email">Email</label>
+          <input id="forgot-email" name="email" type="email" autocomplete="email" required>
+        </div>
+        <button class="btn btn-ink btn-block" type="submit">Send reset link</button>
+        <button class="link-btn" type="button" data-go="login">Back to log in</button>
+      </form>
+
+      <!-- New password, after following the email link -->
+      <form class="auth-form" id="form-reset" data-mode="reset" novalidate hidden>
+        <h1 class="auth-title">Choose a new password</h1>
+        <div class="input">
+          <label for="reset-password">New password</label>
+          <input id="reset-password" name="password" type="password" autocomplete="new-password" minlength="8" required>
+        </div>
+        <div class="input">
+          <label for="reset-confirm">Confirm new password</label>
+          <input id="reset-confirm" name="confirm" type="password" autocomplete="new-password" required>
+        </div>
+        <button class="btn btn-ink btn-block" type="submit">Save password</button>
+      </form>
+
+      <p class="notice notice-warn" id="setup-notice" hidden>Accounts aren't connected yet. Add your Supabase project URL and anon key to <b>js/config.js</b>, then reload this page.</p>
+      <p class="notice" id="form-message" role="status" aria-live="polite" hidden></p>
+    </div>
+
+    <a class="auth-back" href="index.html">Back to the RootRite home page</a>
+    <p class="auth-credit">Footage: <a href="https://commons.wikimedia.org/wiki/File:Wind_in_tree_AppletonFarms_Massachusetts_2024-10.webm">“Wind in tree”</a> by Oakley413, <a href="https://creativecommons.org/licenses/by-sa/4.0">CC BY-SA 4.0</a>, via Wikimedia Commons, in greyscale.</p>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/account.js"></script>
+<script src="js/auth.js"></script>
+</body>
+</html>
