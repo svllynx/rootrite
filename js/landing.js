@@ -1,6 +1,21 @@
 /* RootRite landing page: the zone list, the cut photo board, entrances and the nav's account state. */
 document.documentElement.classList.add("js");
 
+const bandThumb = sp => TREE_PHOTOS[sp.id]
+  ? `<img class="band-thumb" src="${TREE_PHOTOS[sp.id].thumb}" alt="" width="160" height="160" loading="lazy" decoding="async">`
+  : `<span class="band-thumb" aria-hidden="true"></span>`;
+
+/* Every tree photo's author and licence, listed in the footer. */
+function renderTreeCredits() {
+  const list = document.getElementById("tree-credits");
+  if (!list) return;
+  const kind = { p: "photo", i: "illustration", s: "herbarium specimen" };
+  list.innerHTML = SPECIES.filter(sp => TREE_PHOTOS[sp.id]).map(sp => {
+    const p = TREE_PHOTOS[sp.id];
+    return `<li>${esc(sp.name)}: <a href="${esc(p.source)}">${kind[p.kind]}</a> by ${esc(p.author)}, ${p.licenseUrl ? `<a href="${esc(p.licenseUrl)}">${esc(p.license)}</a>` : esc(p.license)}</li>`;
+  }).join("");
+}
+
 /* Species list by zone, as tabs. Long zones show the first few until "Show all" is pressed. */
 const ZONE_PREVIEW = 8;
 function renderZone(zone, animate, all) {
@@ -14,6 +29,7 @@ function renderZone(zone, animate, all) {
   list.innerHTML = items.map(sp => `
     <li>
       <span class="band-elev">${sp.elev[1] <= 5 ? "Tidal" : `${fmt(sp.elev[0])}–${fmt(sp.elev[1])} m`}</span>
+      ${bandThumb(sp)}
       <span class="band-name">${esc(sp.name)}<i>${sp.sci !== sp.name ? `${esc(sp.sci)} · ` : ""}${esc(sp.height)}</i></span>
       <span class="band-use">${sp.uses.map(u => USE_WORDS[u]).join(", ")}</span>
     </li>`).join("");
@@ -108,6 +124,7 @@ async function initAccountNav() {
 
 document.addEventListener("DOMContentLoaded", () => {
   initTabs();
+  renderTreeCredits();
   initCut();
   initReveal();
   initAccountNav();
