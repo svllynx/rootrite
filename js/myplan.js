@@ -409,7 +409,7 @@ const MyPlan = (() => {
     my.plantings.push(data);
     my.openDiaries.add(f.dataset.log);
     paintSites();
-    toast(`Logged ${fmt(count)} ${nameOf(data.species_id)}. Count them in a month.`);
+    toast(`Logged ${fmt(count)} ${nameOf(data.species_id)}. The next count is shown below.`);
   }
 
   async function addCount(f) {
