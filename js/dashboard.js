@@ -94,6 +94,7 @@ function restoreSite() {
 
 /* ---------- Results ---------- */
 const PHOTO_KIND = { p: "Photo", i: "Illustration", s: "Pressed specimen" };
+const photoSite = url => /inaturalist/.test(url) ? "iNaturalist" : /gbif/.test(url) ? "GBIF" : "Wikimedia Commons";
 
 function treePhoto(sp) {
   const p = TREE_PHOTOS[sp.id];
@@ -103,7 +104,7 @@ function treePhoto(sp) {
   return `
     <figure class="sheet-photo is-${p.kind}">
       <img src="${p.src}" alt="${kind} of ${esc(sp.name)}" width="${p.w}" height="${p.h}" loading="lazy" decoding="async">
-      <figcaption>${kind}: <a href="${esc(p.source)}" target="_blank" rel="noopener">${esc(p.author)}</a>, ${license}, via Wikimedia Commons</figcaption>
+      <figcaption>${kind}: <a href="${esc(p.source)}" target="_blank" rel="noopener">${esc(p.author)}</a>, ${license}, via ${photoSite(p.source)}</figcaption>
     </figure>`;
 }
 
