@@ -597,3 +597,19 @@
 .plans .plan-price { font-size: clamp(32px, 3.2vw, 48px); }
 .plan-top { flex-wrap: wrap; }
 .plan-cost { margin-left: auto; }
+
+/* ---------- Compare: the locked preview on the Free plan ---------- */
+.cmp-hidden { display: block; height: 12px; margin-top: 5px; background: var(--sage-2); border-radius: 4px; }
+.cmp-locked .locked { background: var(--sage); }
+.locked-note { margin-top: 6px; font-size: 14px; color: var(--soft); }
+.locked .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; flex: 0 0 auto; white-space: nowrap; }
+.locked .btn svg { flex: 0 0 auto; }
+@media (max-width: 760px) {
+  .cmp-locked .cmp-table { min-width: 0; table-layout: fixed; }
+  .cmp-locked .cmp-table th, .cmp-locked .cmp-table td { padding: 10px 8px; }
+  .cmp-locked .cmp-table tbody th { width: 72px; font-size: 13px; }
+  .cmp-locked .cmp-table thead th:first-child { width: 72px; }
+  .cmp-locked .cmp-name { font-size: 15px; overflow-wrap: anywhere; }
+  .cmp-locked .cmp-sci { display: none; }
+  .cmp-locked .cmp-photo { width: 100%; height: auto; aspect-ratio: 1; }
+}

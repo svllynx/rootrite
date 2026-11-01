@@ -171,6 +171,7 @@ function render(animate) {
   if (!shown.length) {
     $("count").textContent = "No species in our list fits this site well.";
     box.innerHTML = `<p class="empty">Nothing in our list fits these conditions well. Try a different soil or elevation, or ask your local CENRO nursery what grows nearby.</p>`;
+    state.lastShown = [];
     renderCompare();
     return;
   }
@@ -222,7 +223,7 @@ function render(animate) {
     <div class="upsell">
       <div>
         <p class="upsell-line">${more > 0 ? `${more} more native species fit this site.` : "See how well each species fits."}</p>
-        <p class="upsell-note">Premium shows the top 10+ species, a suitability score for each factor, and side-by-side comparison, for ${RR_CONFIG.premiumPrice} a month.</p>
+        <p class="upsell-note">Premium shows the top 10+ species and a suitability score for each factor, for ${RR_CONFIG.premiumPrice} a month.</p>
       </div>
       <button class="btn btn-sky" type="button" data-upgrade>Upgrade to Premium</button>
     </div>` : "";
@@ -282,16 +283,48 @@ async function saveSiteToProject(e) {
 }
 
 /* ---------- Comparison (Premium) ---------- */
+// The Free plan's preview: the person's own top trees, with the details held back until they unlock it.
+function lockedCompare(body) {
+  const picks = (state.lastShown || []).slice(0, COMPARE_MAX);
+  const key = picks.map(r => r.sp.id).join() || "none";
+  if (body.dataset.locked === key) return; // the slider redraws often; keep the photos from flickering
+  body.dataset.locked = key;
+  const names = picks.map(r => r.sp.name);
+  const who = names.length > 1 ? `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}` : "native species";
+  const row = (label, ...widths) => `<tr><th scope="row">${label}</th>${picks.map((r, i) => `<td><span class="cmp-hidden" style="width:${widths[i % widths.length]}%"></span></td>`).join("")}</tr>`;
+  const preview = picks.length > 1 ? `
+    <div class="cmp-wrap" aria-hidden="true">
+      <table class="cmp-table">
+        <thead><tr><th scope="col"></th>${picks.map(r => `<th scope="col"><span class="cmp-name">${esc(r.sp.name)}</span><span class="cmp-sci">${esc(r.sp.sci)}</span></th>`).join("")}</tr></thead>
+        <tbody>
+          <tr><th scope="row">Photo</th>${picks.map(r => `<td>${TREE_PHOTOS[r.sp.id] ? `<img class="cmp-photo" src="${TREE_PHOTOS[r.sp.id].thumb}" alt="" width="160" height="160" loading="lazy">` : `<span class="cmp-nophoto">No free photo yet</span>`}</td>`).join("")}</tr>
+          ${row("Site suitability", 30, 26, 34)}
+          ${row("Growth", 72, 58, 66)}
+          ${row("Soil", 54, 76, 62)}
+          ${row("Water", 64, 50, 74)}
+        </tbody>
+      </table>
+    </div>` : "";
+  body.innerHTML = `
+    <div class="cmp-locked">
+      ${preview}
+      <div class="locked">
+        <div>
+          <p class="locked-line">See ${esc(who)} side by side on site suitability, growth, soil, water, sunlight, mature size and intended use.</p>
+          <p class="locked-note">Included in Premium, ${RR_CONFIG.premiumPrice} a month.</p>
+        </div>
+        <button class="btn btn-ink" type="button" data-upgrade data-unlock-compare>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+          Unlock to compare
+        </button>
+      </div>
+    </div>`;
+}
+
 function renderCompare() {
   const body = $("compare-body");
-  if (!isPremium()) {
-    body.innerHTML = `
-      <div class="locked">
-        <p class="locked-line">Compare native species side by side on site suitability, growth, soil, water, sunlight, mature size and intended use.</p>
-        <button class="btn btn-ink" type="button" data-upgrade>Upgrade to compare</button>
-      </div>`;
-    return;
-  }
+  if (!isPremium()) return lockedCompare(body);
+  delete body.dataset.locked;
   const picks = (state.lastShown || []).filter(r => state.compare.includes(r.sp.id));
   if (picks.length < 2) {
     body.innerHTML = `<p class="empty">${picks.length === 1 ? `${esc(picks[0].sp.name)} is selected. Tick one or two more species to compare.` : "No species selected yet. Tick Compare on two or three species in your results."}</p>`;
@@ -332,9 +365,17 @@ async function confirmUpgrade() {
     const profile = await rrSetPlan("premium");
     state.account.premiumSince = profile?.premium_since || new Date().toISOString();
     applyPlan("premium");
+    // Unlocked from the comparison: show what they came for, already filled in
+    const unlocked = state.unlockCompare ? (state.lastShown || []).slice(0, COMPARE_MAX).map(r => r.sp.id) : [];
+    if (unlocked.length > 1) state.compare = unlocked;
     render(true);
     $("checkout").close();
-    toast("Premium is active. Your results now show scores and 10+ species.");
+    if (unlocked.length > 1) {
+      $("compare").scrollIntoView();
+      toast(`Premium is active. Here are your top ${unlocked.length} side by side.`);
+    } else {
+      toast("Premium is active. Your results now show scores and 10+ species.");
+    }
   } catch (err) {
     msg.textContent = rrErrorText(err);
     msg.className = "notice notice-error";
@@ -377,7 +418,8 @@ document.addEventListener("DOMContentLoaded", () => {
   $("site").addEventListener("submit", e => e.preventDefault());
 
   document.addEventListener("click", e => {
-    if (e.target.closest("[data-upgrade]")) { openCheckout(); return; }
+    const upgrade = e.target.closest("[data-upgrade]");
+    if (upgrade) { state.unlockCompare = upgrade.hasAttribute("data-unlock-compare"); openCheckout(); return; }
     const toggle = e.target.closest(".sheet-toggle");
     if (toggle) {
       const open = toggle.getAttribute("aria-expanded") !== "true";

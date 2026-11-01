@@ -25,9 +25,9 @@
   </a>
   <nav class="app-nav" aria-label="App">
     <a href="#match">Site matcher</a>
+    <a href="#compare">Compare</a>
     <a href="#planting">When to plant</a>
     <a href="#nurseries">Nurseries</a>
-    <a href="#compare">Compare</a>
     <a href="#scan">AI Site Scan</a>
     <a href="#plan">Plan</a>
     <a href="org.html" data-org-only hidden>Organization</a>
@@ -174,6 +174,16 @@
     </div>
   </section>
 
+  <!-- Species comparison: Premium, and a locked preview on Free -->
+  <section class="app-section" id="compare" aria-labelledby="compare-title">
+    <div class="app-section-head">
+      <h2 id="compare-title" class="h2">Compare species</h2>
+      <p class="app-section-lead" data-premium-only>Tick <b>Compare</b> on up to three species in your results above to see them side by side.</p>
+      <p class="app-section-lead" data-free-only>Choosing between trees? See your top matches next to each other before you buy seedlings.</p>
+    </div>
+    <div id="compare-body"></div>
+  </section>
+
   <!-- When to plant: the calendar for the site's own rainfall -->
   <section class="app-section planting" id="planting" aria-labelledby="planting-title">
     <div class="app-section-head">
@@ -231,15 +241,6 @@
       </div>
     </form>
     <p class="nursery-note">Nursery locations also come from OpenStreetMap (&copy; OpenStreetMap contributors). Stock changes, so call before you travel.</p>
-  </section>
-
-  <!-- Premium: species comparison -->
-  <section class="app-section" id="compare" aria-labelledby="compare-title">
-    <div class="app-section-head">
-      <h2 id="compare-title" class="h2">Compare species</h2>
-      <p class="app-section-lead" data-premium-only>Tick <b>Compare</b> on up to three species in your results to see them side by side.</p>
-    </div>
-    <div id="compare-body"></div>
   </section>
 
   <!-- Premium: AI site scan, coming soon -->
