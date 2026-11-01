@@ -7,7 +7,7 @@ const Reports = (() => {
   const GREEN = [59, 73, 54], INK = [31, 38, 28], SOFT = [78, 88, 72], SAGE = [228, 231, 216], SAGE2 = [215, 220, 198];
   const JSPDF = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
   const WIDTH = 595.28, HEIGHT = 841.89, MARGIN = 48, INNER = WIDTH - MARGIN * 2;
-  const KIND_WORDS = { lgu: "LGU or barangay", school: "School or university", ngo: "NGO", company: "Company", other: "Organisation" };
+  const KIND_WORDS = { lgu: "LGU or barangay", school: "School or university", ngo: "NGO", company: "Company", other: "Organization" };
   const cap = t => t.charAt(0).toUpperCase() + t.slice(1);
   let loading = null;
 
@@ -209,7 +209,7 @@ const Reports = (() => {
     doc.header(`Site report: ${site.name}`, `${org.name}  |  Project: ${project.name}  |  ${today()}`, logo);
 
     doc.table(null, [
-      ["Prepared for", `${org.name} (${KIND_WORDS[org.kind] || "Organisation"})`],
+      ["Prepared for", `${org.name} (${KIND_WORDS[org.kind] || "Organization"})`],
       ["Location", site.location || s.location || "Not named"],
       ["Coordinates", `${site.lat.toFixed(5)}, ${site.lon.toFixed(5)}`],
       ["Area", +site.area_ha ? `${fmt(+site.area_ha)} hectares` : "Not recorded"]

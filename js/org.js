@@ -1,7 +1,7 @@
 /* RootRite organisation workspace: impact, projects, sites, plantings, survival checks and the team. */
 document.documentElement.classList.add("js");
 
-const KINDS = { lgu: "LGU or barangay", school: "School or university", ngo: "NGO", company: "Company", other: "Organisation" };
+const KINDS = { lgu: "LGU or barangay", school: "School or university", ngo: "NGO", company: "Company", other: "Organization" };
 const JOIN_KEY = "rootrite-join";
 const ws = {
   account: null, orgs: [], org: null, role: "member",
@@ -117,7 +117,7 @@ async function startOrganisation(e) {
     const { data, error } = await db().rpc("create_organisation", { org_name: name, org_kind: f.kind.value });
     if (error) throw error;
     await enter(data.id);
-    toast("Your Organisation plan is active. Add your first project.");
+    toast("Your Organization plan is active. Add your first project.");
   } catch (err) {
     msg.textContent = rrErrorText(err);
     msg.hidden = false;
@@ -145,7 +145,7 @@ async function loadOrg() {
 
 function renderAll() {
   $("ws-title").textContent = ws.org.name;
-  $("ws-sub").textContent = `${KINDS[ws.org.kind]} · Organisation plan · You're ${isOwner() ? "the owner" : "a member"}`;
+  $("ws-sub").textContent = `${KINDS[ws.org.kind]} · Organization plan · You're ${isOwner() ? "the owner" : "a member"}`;
   $("ws-switch").hidden = ws.orgs.length < 2;
   $("ws-org").innerHTML = ws.orgs.map(o => `<option value="${o.id}"${o.id === ws.org.id ? " selected" : ""}>${esc(o.name)}</option>`).join("");
   renderImpact();
@@ -397,7 +397,7 @@ document.addEventListener("click", async e => {
   if (d.removeCheck && confirm("Undo the last survival check?")) return run(db().from("survival_checks").delete().eq("id", d.removeCheck), "Check removed.");
   if (d.removeSite && confirm("Remove this site and everything logged on it?")) return run(db().from("project_sites").delete().eq("id", d.removeSite), "Site removed.");
   if (d.removeProject && confirm("Delete this project, with all its sites and plantings? This can't be undone.")) return run(db().from("projects").delete().eq("id", d.removeProject), "Project deleted.");
-  if (d.cancelInvite) return run(db().from("org_invites").delete().eq("id", d.cancelInvite), "Invite cancelled.");
+  if (d.cancelInvite) return run(db().from("org_invites").delete().eq("id", d.cancelInvite), "Invite canceled.");
   if (d.removeMember) {
     const self = d.removeMember === myId();
     if (!confirm(self ? `Leave ${ws.org.name}?` : "Remove this person from the team?")) return;

@@ -285,7 +285,7 @@ const SiteMap = (() => {
       const b = e.target.closest("button[data-lat]");
       if (!b) return;
       $("pin-hits").hidden = true;
-      drop(+b.dataset.lat, +b.dataset.lon, { fly: true, doneNote: "Filled in for the town centre. Drag the pin onto your exact spot for a closer reading." });
+      drop(+b.dataset.lat, +b.dataset.lon, { fly: true, doneNote: "Filled in for the town center. Drag the pin onto your exact spot for a closer reading." });
     });
     $("pin-locate").addEventListener("click", locate);
     requestAnimationFrame(() => map.invalidateSize());

@@ -48,7 +48,7 @@ function applyPlan(plan) {
   const viaOrg = state.orgs.length > 0 && plan !== "premium"; // an Organisation plan includes Premium
   state.plan = plan === "premium" || viaOrg ? "premium" : "free";
   document.body.dataset.plan = state.plan;
-  $("plan-badge").textContent = state.orgs.length ? "Organisation" : isPremium() ? "Premium" : "Free";
+  $("plan-badge").textContent = state.orgs.length ? "Organization" : isPremium() ? "Premium" : "Free";
   document.querySelectorAll("[data-free-only]").forEach(n => { n.hidden = isPremium(); });
   document.querySelectorAll("[data-premium-only]").forEach(n => { n.hidden = !isPremium() || (viaOrg && n.matches("#downgrade, .plan-current")); });
   document.querySelectorAll("[data-org-only]").forEach(n => { n.hidden = !state.orgs.length; });
@@ -278,7 +278,7 @@ async function saveSiteToProject(e) {
   if (error) return toast(rrErrorText(error));
   f.area.value = "";
   $("save-name").dataset.edited = "";
-  toast("Site saved. Open your organisation to log plantings and download its report.");
+  toast("Site saved. Open your organization to log plantings and download its report.");
 }
 
 /* ---------- Comparison (Premium) ---------- */

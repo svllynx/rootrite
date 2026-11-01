@@ -376,7 +376,7 @@ declare
 begin
   if me is null then raise exception 'Not signed in'; end if;
   if (select count(*) from public.org_members where user_id = me and role = 'owner') >= 3 then
-    raise exception 'You already own three organisations.';
+    raise exception 'You already own three organizations.';
   end if;
   insert into public.organisations (name, kind, created_by) values (trim(org_name), org_kind, me) returning * into result;
   insert into public.org_members (org_id, user_id, role) values (result.id, me, 'owner');
