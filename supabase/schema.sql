@@ -450,9 +450,12 @@ grant execute on function public.create_organisation(text, text), public.invite_
 -- Organization members can save up to 20, and only they can keep a tree diary.
 alter table public.profiles add column if not exists free_site_used boolean not null default false;
 
+alter table public.profiles add column if not exists billing text check (billing in ('monthly', 'season'));
+alter table public.profiles add column if not exists premium_until timestamptz;
+
 create or replace function public.has_premium(u uuid) returns boolean
 language sql stable security definer set search_path = '' as $$
-  select exists (select 1 from public.profiles where id = u and plan = 'premium')
+  select exists (select 1 from public.profiles where id = u and plan = 'premium' and (premium_until is null or premium_until > now()))
       or exists (select 1 from public.org_members where user_id = u);
 $$;
 revoke execute on function public.has_premium(uuid) from public, anon, authenticated;
@@ -583,3 +586,60 @@ $$;
 drop trigger if exists my_checks_check on public.my_checks;
 create trigger my_checks_check before insert on public.my_checks for each row execute function public.check_my_check();
 revoke execute on function public.check_my_site(), public.check_my_planting(), public.check_my_check() from public, anon, authenticated;
+
+-- 8. Plans and upgrade prompts. The demo checkout sets a monthly plan or a six-month season pass; no
+-- payment is taken. When real payments are added, the payment provider's webhook sets these instead.
+drop function if exists public.set_demo_plan(text);
+create or replace function public.set_demo_plan(new_plan text, new_billing text default 'monthly')
+returns public.profiles
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  result public.profiles;
+begin
+  if (select auth.uid()) is null then
+    raise exception 'Not signed in';
+  end if;
+  if new_plan not in ('free', 'premium') then
+    raise exception 'Unknown plan: %', new_plan;
+  end if;
+  if new_billing not in ('monthly', 'season') then
+    raise exception 'Unknown billing: %', new_billing;
+  end if;
+
+  insert into public.profiles (id) values ((select auth.uid()))
+  on conflict (id) do nothing;
+
+  update public.profiles
+     set plan = new_plan,
+         premium_since = case when new_plan = 'premium' then coalesce(premium_since, now()) else null end,
+         billing = case when new_plan = 'premium' then new_billing else null end,
+         premium_until = case when new_plan = 'premium' and new_billing = 'season' then now() + interval '6 months' else null end
+   where id = (select auth.uid())
+  returning * into result;
+
+  return result;
+end;
+$$;
+
+revoke execute on function public.set_demo_plan(text, text) from public, anon;
+grant execute on function public.set_demo_plan(text, text) to authenticated;
+
+-- Which upgrade prompts people tap, with no link to who tapped. Anyone signed in can add a count; nobody
+-- can read them from the browser. See them in the Table Editor, or run:
+--   select source, kind, count(*) from public.upgrade_events group by 1, 2 order by 3 desc;
+create table if not exists public.upgrade_events (
+  id         bigint generated always as identity primary key,
+  source     text not null check (source in ('nav', 'results', 'compare', 'tree-check', 'plan', 'reminders', 'sites', 'diary', 'plan-card', 'other')),
+  kind       text not null check (kind in ('tap', 'activated')),
+  billing    text check (billing in ('monthly', 'season')),
+  created_at timestamptz not null default now()
+);
+alter table public.upgrade_events enable row level security;
+drop policy if exists "Signed-in people add counts" on public.upgrade_events;
+create policy "Signed-in people add counts" on public.upgrade_events for insert to authenticated
+  with check ((select auth.uid()) is not null);
+revoke all on public.upgrade_events from anon, authenticated;
+grant insert (source, kind, billing) on public.upgrade_events to authenticated;

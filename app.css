@@ -811,3 +811,17 @@
   .ms-check .btn { flex: 1 1 100%; }
   .ms-diary-locked .btn, .ms-actions .btn { flex: 1 1 100%; justify-content: center; }
 }
+
+/* ---------- Checkout: how long ---------- */
+.checkout-options { display: grid; gap: 6px; margin: 0; padding: 0; border: 0; }
+.checkout-option { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 14px 16px; background: var(--sage); cursor: pointer; transition: background-color .2s var(--ease); }
+.checkout-option:has(input:checked) { background: var(--green); color: var(--on-dark); }
+.checkout-option input { width: 18px; height: 18px; margin: 0; accent-color: var(--sky); }
+.checkout-option input:focus-visible { outline: 3px solid var(--sky); outline-offset: 2px; }
+.checkout-option-text b { display: block; font: 600 16px/1.25 var(--display); }
+.checkout-option-text small { display: block; margin-top: 2px; font-size: 14px; line-height: 1.35; opacity: .9; }
+.checkout-option-price { font: 600 20px/1.1 var(--display); text-align: right; white-space: nowrap; }
+.checkout-option-price small { display: block; font: 400 14px/1.2 var(--text); }
+.checkout-list { font-size: 15px; }
+.tag-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.nurseries .app-section-lead a { color: var(--green); text-underline-offset: 3px; }

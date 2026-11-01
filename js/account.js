@@ -22,13 +22,17 @@ async function rrCurrentAccount() {
   if (!client) return null;
   const { data: { session } } = await client.auth.getSession();
   if (!session) return null;
-  const { data: profile, error } = await client.from("profiles").select("full_name, plan, premium_since, free_site_used").eq("id", session.user.id).single();
+  const { data: profile, error } = await client.from("profiles").select("full_name, plan, premium_since, free_site_used, billing, premium_until").eq("id", session.user.id).single();
   if (error) console.warn("RootRite: could not load the profile", error.message);
+  const passEnded = !!profile?.premium_until && new Date(profile.premium_until) <= new Date();
   return {
     user: session.user,
     name: profile?.full_name || session.user.user_metadata?.full_name || session.user.email,
-    plan: profile?.plan === "premium" ? "premium" : "free",
+    plan: profile?.plan === "premium" && !passEnded ? "premium" : "free",
     premiumSince: profile?.premium_since || null,
+    billing: profile?.billing || null,
+    premiumUntil: profile?.premium_until || null,
+    passEnded,
     freeSiteUsed: !!profile?.free_site_used
   };
 }
@@ -45,11 +49,18 @@ async function rrMyOrganisations() {
 }
 
 /* Demo checkout: switches the plan through a database function; no payment is taken. */
-async function rrSetPlan(plan) {
+async function rrSetPlan(plan, billing = "monthly") {
   const client = rrClient();
-  const { data, error } = await client.rpc("set_demo_plan", { new_plan: plan });
+  const { data, error } = await client.rpc("set_demo_plan", { new_plan: plan, new_billing: billing });
   if (error) throw error;
   return data;
+}
+
+/* Counts which upgrade prompts people tap, with no link to who tapped. It never gets in the way if it fails. */
+function rrCountUpgrade(source, kind, billing = null) {
+  try {
+    rrClient()?.from("upgrade_events").insert({ source, kind, billing }).then(() => {}, () => {});
+  } catch (e) { /* counting is optional */ }
 }
 
 async function rrSignOut() {

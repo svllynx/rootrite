@@ -35,7 +35,7 @@
   </nav>
   <div class="app-account">
     <p class="app-user"><span id="user-name">Your account</span><span class="plan-badge" id="plan-badge">Free</span></p>
-    <button class="btn btn-ink btn-sm" type="button" data-upgrade data-free-only>Upgrade</button>
+    <button class="btn btn-ink btn-sm" type="button" data-upgrade data-upgrade-from="nav" data-free-only>Upgrade</button>
     <button class="link-btn" type="button" id="sign-out">Log out</button>
   </div>
 </header>
@@ -228,7 +228,7 @@
   <section class="app-section nurseries" id="nurseries" aria-labelledby="nurseries-title">
     <div class="app-section-head">
       <h2 id="nurseries-title" class="h2">Where to get seedlings</h2>
-      <p class="app-section-lead">Nurseries near your pin, nearest first. Ones that list the tree in stock come first; for the rest, call ahead.</p>
+      <p class="app-section-lead">Nurseries near your pin, nearest first. Ones that list the tree in stock come first; for the rest, call ahead. Going soon? <a href="#myplan">Work out how many to buy</a> first.</p>
     </div>
     <div class="nursery-tools">
       <label class="nursery-filter" for="nursery-species">Tree</label>
@@ -299,10 +299,10 @@
           <p class="plan-price">₱0</p>
         </div>
         <div class="plan-groups">
-          <div><h4>Basic species information</h4><p>Common name, scientific name, native status, general characteristics, habitat and common uses.</p></div>
-          <div><h4>Basic planting tips</h4><p>Sunlight, water requirements, basic care and general planting considerations.</p></div>
-          <div><h4>Basic site assessment</h4><p>Location, elevation, soil, slope, sunlight, moisture and drainage, and planting purpose.</p></div>
-          <div><h4>Top 3 native species</h4><p>The three best-suited native trees for your site.</p></div>
+          <div><h4>Top 3 native trees for your site</h4><p>From a map pin that reads your elevation, rainfall, soil and slope.</p></div>
+          <div><h4>Check a tree you have in mind</h4><p>A clear verdict for any of our 69 trees, and a warning if it may fail on your site.</p></div>
+          <div><h4>When to plant, and where to buy</h4><p>The best months for your site, and nurseries near your pin.</p></div>
+          <div><h4>Your first planting plan and PDF report</h4><p>One full plan, for one site, so you can see what Premium does.</p></div>
         </div>
         <p class="plan-current" data-free-only>Your current plan</p>
         <button class="btn btn-line" type="button" id="downgrade" data-premium-only>Switch to Free</button>
@@ -311,16 +311,18 @@
       <article class="plan plan-premium" aria-labelledby="premium-name">
         <div class="plan-top">
           <h3 class="plan-name" id="premium-name">Premium</h3>
-          <div class="plan-cost"><p class="plan-price" data-price>₱75</p><p class="plan-per">a month</p></div>
+          <div class="plan-cost"><p class="plan-price" data-price>₱75</p><p class="plan-per">a month, or <span data-season-price>₱199</span> for a <span data-season-months>6</span>-month season</p></div>
         </div>
         <p class="plan-plus">Everything in Free, plus:</p>
         <div class="plan-groups">
-          <div><h4>Detailed suitability scores</h4><p>For example, Narra at 92% site suitability, with how it matches your soil, elevation, moisture, sunlight and more.</p></div>
-          <div><h4>Top 10+ native species</h4><p>More alternatives instead of only three.</p></div>
-          <div><h4>Species comparison</h4><p>Side by side on site suitability, growth, soil, water, sunlight, mature size and intended use.</p></div>
-          <div><h4>AI Site Scan</h4><p><span class="soon">Coming soon</span> Personalized recommendations from photos of your site.</p></div>
+          <div><h4>A planting plan for every site</h4><p>Seedlings to buy, rough cost, and what to do each month until a year after planting.</p></div>
+          <div><h4>Why a tree will or won't work</h4><p>Factor-by-factor reasons for any tree you check, and better native alternatives.</p></div>
+          <div><h4>Reminders, and a tree diary</h4><p>Add every task to your phone's calendar. Log what you plant, count survivors, and see when the next count is due.</p></div>
+          <div><h4>All your good matches, with scores</h4><p>Top 10+ native trees, each scored and comparable side by side.</p></div>
+          <div><h4>Up to 20 saved sites, with PDF reports</h4><p>A report for each site, for proposals, partners or permit applications.</p></div>
+          <div><h4>AI Site Scan</h4><p><span class="soon">Coming soon</span> Recommendations from photos of your site.</p></div>
         </div>
-        <button class="btn btn-sky" type="button" data-upgrade data-free-only>Upgrade to Premium</button>
+        <button class="btn btn-sky" type="button" data-upgrade data-upgrade-from="plan-card" data-free-only>Upgrade to Premium</button>
         <p class="plan-current" data-premium-only>Your current plan</p>
       </article>
 
@@ -347,13 +349,26 @@
 <dialog class="checkout" id="checkout" aria-labelledby="checkout-title">
   <form method="dialog" class="checkout-inner" id="checkout-form">
     <h2 id="checkout-title" class="checkout-title">Upgrade to Premium</h2>
-    <p class="checkout-price"><span data-price>₱75</span> a month</p>
     <ul class="checkout-list">
-      <li>Detailed suitability scores for every species</li>
-      <li>Top 10+ native species for your site</li>
-      <li>Side-by-side species comparison</li>
-      <li>AI Site Scan when it launches</li>
+      <li>A planting plan for every site, with seedling counts and care by the month</li>
+      <li>Reasons and better alternatives for any tree you check</li>
+      <li>Calendar reminders and a tree diary</li>
+      <li>Top 10+ native trees, scored and comparable</li>
+      <li>Up to 20 saved sites, each with a PDF report</li>
     </ul>
+    <fieldset class="checkout-options">
+      <legend class="sr-only">Choose how long</legend>
+      <label class="checkout-option">
+        <input type="radio" name="billing" value="season" checked>
+        <span class="checkout-option-text"><b>Season pass</b><small><span data-season-months>6</span> months, enough for a planting season and the first dry months. About <span data-season-monthly>₱33</span> a month.</small></span>
+        <span class="checkout-option-price" data-season-price>₱199</span>
+      </label>
+      <label class="checkout-option">
+        <input type="radio" name="billing" value="monthly">
+        <span class="checkout-option-text"><b>Monthly</b><small>Month to month.</small></span>
+        <span class="checkout-option-price"><span data-price>₱75</span><small>a month</small></span>
+      </label>
+    </fieldset>
     <p class="notice notice-warn">Demo checkout. No payment is taken and no card details are needed. Your account switches to Premium straight away.</p>
     <p class="notice" id="checkout-message" role="status" aria-live="polite" hidden></p>
     <div class="checkout-actions">

@@ -55,10 +55,14 @@ function applyPlan(plan) {
   document.querySelectorAll("[data-premium-only]").forEach(n => { n.hidden = !isPremium() || (viaOrg && n.matches("#downgrade, .plan-current")); });
   document.querySelectorAll("[data-org-only]").forEach(n => { n.hidden = !state.orgs.length; });
   document.querySelectorAll("[data-no-org]").forEach(n => { n.hidden = state.orgs.length > 0; });
-  const since = state.account?.premiumSince ? new Date(state.account.premiumSince).toLocaleDateString("en-PH", { year: "numeric", month: "long", day: "numeric" }) : null;
+  const longDate = d => new Date(d).toLocaleDateString("en-PH", { year: "numeric", month: "long", day: "numeric" });
+  const since = state.account?.premiumSince ? longDate(state.account.premiumSince) : null;
+  const until = state.account?.premiumUntil ? longDate(state.account.premiumUntil) : null;
   $("plan-status").textContent = isPremium()
-    ? `You're on Premium${since ? ` since ${since}` : ""}. Thank you for supporting RootRite.`
-    : `You're on the Free plan. Premium is ${RR_CONFIG.premiumPrice} a month.`;
+    ? until ? `Your season pass runs until ${until}. Thank you for supporting RootRite.`
+      : `You're on Premium${since ? ` since ${since}` : ""}. Thank you for supporting RootRite.`
+    : state.account?.passEnded ? `Your season pass ended on ${until}. Your saved sites and diary are safe, and renewing opens them again.`
+    : `You're on the Free plan. Premium is ${RR_CONFIG.premiumPrice} a month, or ${RR_CONFIG.seasonPrice} for ${RR_CONFIG.seasonMonths} months.`;
   if (viaOrg) $("plan-status").textContent = `You get Premium features through ${state.orgs[0].name}.`;
   if (!isPremium()) state.compare = [];
 }
@@ -200,7 +204,12 @@ function render(animate) {
       <ul class="tag-why">${bestChips}</ul>
       ${isPremium() ? `<div class="tag-bars">${factorBars(best)}</div>` : ""}
       <div class="tag-sheet">${sheetBody(best.sp)}</div>
-      ${isPremium() ? `<div class="tag-foot">${compareToggle(best)}</div>` : ""}
+      <div class="tag-foot">
+        ${isPremium() ? compareToggle(best) : ""}
+        ${isPremium()
+          ? `<button class="btn btn-sky btn-sm" type="button" data-plan-add="${best.sp.id}">Plan ${esc(best.sp.name)}: how many to buy</button>`
+          : `<a class="btn btn-sky btn-sm" href="#myplan">Plan ${esc(best.sp.name)}: how many to buy</a>`}
+      </div>
     </article>`;
 
   const restHtml = rest.length ? `<ol class="sheets">${rest.map(r => `
@@ -223,14 +232,14 @@ function render(animate) {
       </div>
     </li>`).join("")}</ol>` : "";
 
-  const more = viable.length - shown.length;
+  const more = viable.length - shown.length, next = viable[shown.length];
   const upsell = !isPremium() ? `
     <div class="upsell">
       <div>
-        <p class="upsell-line">${more > 0 ? `${more} more native species fit this site.` : "See how well each species fits."}</p>
-        <p class="upsell-note">Premium shows the top 10+ species and a suitability score for each factor, for ${RR_CONFIG.premiumPrice} a month.</p>
+        <p class="upsell-line">${more > 0 ? `${more} more native ${more === 1 ? "tree fits" : "trees fit"} this site. The next best is ${esc(next.sp.name)}.` : "See how well each tree fits, factor by factor."}</p>
+        <p class="upsell-note">Premium shows the top 10+ with scores, and plans every site, from ${RR_CONFIG.premiumPrice} a month.</p>
       </div>
-      <button class="btn btn-sky" type="button" data-upgrade>Upgrade to Premium</button>
+      <button class="btn btn-sky" type="button" data-upgrade data-upgrade-from="results">See more trees</button>
     </div>` : "";
 
   box.innerHTML = bestHtml + restHtml + upsell;
@@ -364,11 +373,16 @@ function openCheckout() {
 
 async function confirmUpgrade() {
   const btn = $("confirm-upgrade"), msg = $("checkout-message");
+  const billing = $("checkout-form").billing.value;
   btn.disabled = true;
   btn.textContent = "Activating…";
   try {
-    const profile = await rrSetPlan("premium");
+    const profile = await rrSetPlan("premium", billing);
     state.account.premiumSince = profile?.premium_since || new Date().toISOString();
+    state.account.premiumUntil = profile?.premium_until || null;
+    state.account.billing = billing;
+    state.account.passEnded = false;
+    rrCountUpgrade(state.upgradeFrom || "other", "activated", billing);
     applyPlan("premium");
     MyPlan.afterPlanChange();
     // Unlocked from the comparison: show what they came for, already filled in
@@ -404,10 +418,11 @@ async function confirmUpgrade() {
 }
 
 async function downgrade() {
-  if (!confirm("Switch back to the Free plan? You'll see your top 3 species without scores.")) return;
+  if (!confirm("Switch back to the Free plan? You'll see your top 3 trees without scores. Your saved sites and diary stay safe, but only your first site stays open.")) return;
   try {
     await rrSetPlan("free");
     state.account.premiumSince = null;
+    state.account.premiumUntil = null;
     applyPlan("free");
     MyPlan.afterPlanChange();
     render(true);
@@ -427,6 +442,10 @@ function toast(text) {
 /* ---------- Wiring ---------- */
 document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll("[data-price]").forEach(n => { n.textContent = RR_CONFIG.premiumPrice; });
+  document.querySelectorAll("[data-season-price]").forEach(n => { n.textContent = RR_CONFIG.seasonPrice; });
+  document.querySelectorAll("[data-season-months]").forEach(n => { n.textContent = RR_CONFIG.seasonMonths; });
+  const seasonMonthly = Math.round(+RR_CONFIG.seasonPrice.replace(/[^\d.]/g, "") / RR_CONFIG.seasonMonths);
+  document.querySelectorAll("[data-season-monthly]").forEach(n => { n.textContent = `₱${seasonMonthly}`; });
 
   let typing;
   $("save-name")?.addEventListener("input", e => { e.target.dataset.edited = "1"; });
@@ -440,7 +459,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const upgrade = e.target.closest("[data-upgrade]");
     if (upgrade) {
       state.unlockCompare = upgrade.hasAttribute("data-unlock-compare");
-      state.upgradeFrom = upgrade.dataset.upgradeFrom || "";
+      state.upgradeFrom = upgrade.hasAttribute("data-unlock-compare") ? "compare" : upgrade.dataset.upgradeFrom || "other";
+      rrCountUpgrade(state.upgradeFrom, "tap");
       openCheckout();
       return;
     }
