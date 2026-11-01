@@ -169,6 +169,18 @@
           </form>
         </aside>
 
+        <section class="tree-check" id="tree-check" aria-labelledby="check-title">
+          <h2 class="tree-check-title" id="check-title">Have a tree in mind?</h2>
+          <p class="tree-check-lead">See how it would do on the site you described.</p>
+          <form class="check-form" id="check-form" novalidate>
+            <label class="sr-only" for="check-tree">Tree name</label>
+            <input id="check-tree" type="search" list="check-trees" maxlength="60" autocomplete="off" placeholder="For example, Narra">
+            <datalist id="check-trees"></datalist>
+            <button class="btn btn-ink" type="submit">Check this tree</button>
+          </form>
+          <div id="check-result" aria-live="polite"></div>
+        </section>
+
         <div class="results" id="results" aria-live="polite"></div>
       </div>
     </div>
@@ -341,6 +353,7 @@
 <script src="js/sitemap.js"></script>
 <script src="js/calendar.js"></script>
 <script src="js/nurseries.js"></script>
+<script src="js/treecheck.js"></script>
 <script src="js/dashboard.js"></script>
 </body>
 </html>

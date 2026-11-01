@@ -35,6 +35,7 @@ async function boot() {
   document.body.classList.remove("is-checking");
   // the pin must be back before the first render, because rendering saves the site
   SiteMap.init(saved);
+  TreeCheck.init();
   render(true);
   Nurseries.init();
   initSaveSite();
@@ -161,6 +162,7 @@ function render(animate) {
   saveSite(s);
   PlantCal.paint();
   syncSaveName();
+  TreeCheck.paint();
 
   const all = rank(s);
   const viable = all.filter(r => r.fit >= 45);
@@ -374,6 +376,9 @@ async function confirmUpgrade() {
     if (unlocked.length > 1) {
       $("compare").scrollIntoView();
       toast(`Premium is active. Here are your top ${unlocked.length} side by side.`);
+    } else if (state.upgradeFrom === "tree-check") {
+      $("tree-check").scrollIntoView();
+      toast("Premium is active. Here's the full answer for your tree.");
     } else {
       toast("Premium is active. Your results now show scores and 10+ species.");
     }
@@ -420,7 +425,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.addEventListener("click", e => {
     const upgrade = e.target.closest("[data-upgrade]");
-    if (upgrade) { state.unlockCompare = upgrade.hasAttribute("data-unlock-compare"); openCheckout(); return; }
+    if (upgrade) {
+      state.unlockCompare = upgrade.hasAttribute("data-unlock-compare");
+      state.upgradeFrom = upgrade.dataset.upgradeFrom || "";
+      openCheckout();
+      return;
+    }
     const toggle = e.target.closest(".sheet-toggle");
     if (toggle) {
       const open = toggle.getAttribute("aria-expanded") !== "true";

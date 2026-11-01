@@ -615,3 +615,58 @@
   .cmp-locked .cmp-sci { display: none; }
   .cmp-locked .cmp-photo { width: 100%; height: auto; aspect-ratio: 1; }
 }
+
+/* ---------- Have a tree in mind? ---------- */
+.tree-check { margin-top: 32px; padding: 24px; background: var(--paper); }
+.tree-check-title { font: 600 var(--t-sub)/1.1 var(--display); letter-spacing: -0.02em; }
+.tree-check-lead { margin-top: 6px; font-size: 16px; color: var(--soft); }
+.check-form { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.check-form input {
+  flex: 1 1 240px; min-width: 0; min-height: 48px; padding: 0 14px;
+  font: 400 18px/1.2 var(--text); color: var(--ink);
+  background: var(--paper); border: 2px solid var(--sage-2); border-radius: 0;
+}
+.check-form input:hover { border-color: var(--soft); }
+.check-form input:focus { outline: none; border-color: var(--green); }
+.check-form input::placeholder { color: #8A9283; }
+.check-answer { display: grid; gap: 16px; margin-top: 20px; padding-top: 20px; border-top: 2px solid var(--sage); }
+.check-head { display: flex; align-items: center; gap: 14px; }
+.check-head > div { flex: 1 1 auto; min-width: 0; }
+.check-thumb { flex: none; display: block; width: 64px; height: 64px; object-fit: cover; background: var(--sage-2); }
+.check-name { font: 600 22px/1.2 var(--display); letter-spacing: -0.02em; }
+.check-sci { font-style: italic; font-size: 14px; color: var(--soft); }
+.check-verdict { flex: none; font: 600 22px/1.1 var(--display); letter-spacing: -0.02em; color: var(--green); text-align: right; }
+.check-verdict small { display: block; margin-top: 4px; font: 500 14px/1.2 var(--text); letter-spacing: 0; }
+.check-verdict.is-no { color: var(--bark); }
+.check-line { font-size: 16px; max-width: 64ch; }
+.check-none, .tree-check #check-result > .check-line { margin-top: 16px; }
+.check-picks { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 8px; }
+.check-h { margin: 0 0 8px; font: 600 16px/1.25 var(--display); color: var(--green); }
+.check-answer > .check-h { margin-bottom: -8px; }
+.check-reasons { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 32px; }
+.check-reasons ul { display: grid; gap: 4px; font-size: 16px; }
+.check-alts { display: grid; gap: 4px; }
+.check-alt {
+  display: flex; align-items: center; gap: 12px; width: 100%; padding: 8px 12px 8px 8px;
+  background: var(--sage); border: 0; cursor: pointer; text-align: left; transition: background-color .2s var(--ease);
+}
+.check-alt:hover { background: var(--sage-2); }
+.check-alt .check-thumb { width: 44px; height: 44px; }
+.check-alt-name { flex: 1 1 auto; font: 500 16px/1.25 var(--text); }
+.check-alt-fit { flex: none; font: 600 14px/1.2 var(--display); color: var(--green); font-variant-numeric: tabular-nums; }
+.check-locked { background: var(--sage); }
+.check-hidden { display: grid; gap: 10px; padding: 16px; }
+.check-hidden li { display: grid; grid-template-columns: 96px 1fr; gap: 12px; align-items: center; font-size: 14px; color: var(--soft); }
+.check-hidden .cmp-hidden { margin: 0; background: var(--sage-2); }
+.check-unlock { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 16px; background: var(--sage-2); }
+.check-unlock p { font-size: 16px; max-width: 46ch; }
+.check-unlock .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; flex: 0 0 auto; white-space: nowrap; }
+@media (max-width: 760px) {
+  .tree-check { padding: 20px 16px; }
+  .check-form .btn { flex: 1 1 100%; }
+  .check-head { flex-wrap: wrap; }
+  .check-verdict { flex: 1 1 100%; text-align: left; }
+  .check-verdict small { display: inline; margin: 0 0 0 8px; }
+  .check-reasons { grid-template-columns: 1fr; }
+  .check-unlock { flex-direction: column; align-items: stretch; }
+}
