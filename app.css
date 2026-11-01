@@ -600,7 +600,9 @@
 
 /* ---------- Compare: the locked preview on the Free plan ---------- */
 .cmp-hidden { display: block; height: 12px; margin-top: 5px; background: var(--sage-2); border-radius: 4px; }
-.cmp-locked .locked { background: var(--sage); }
+.cmp-locked .cmp-table { table-layout: fixed; }
+.cmp-locked .cmp-table thead th:first-child { width: 160px; }
+.cmp-locked .locked-line { text-wrap: pretty; }
 .locked-note { margin-top: 6px; font-size: 14px; color: var(--soft); }
 .locked .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; flex: 0 0 auto; white-space: nowrap; }
 .locked .btn svg { flex: 0 0 auto; }
