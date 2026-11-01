@@ -124,7 +124,8 @@ async function initAccountNav() {
 
 document.addEventListener("DOMContentLoaded", () => {
   initTabs();
-  renderTreeCredits();
+  // the credits are long, so they are built only when someone opens them
+  document.querySelector(".tree-credits")?.addEventListener("toggle", renderTreeCredits, { once: true });
   initCut();
   initReveal();
   initAccountNav();
