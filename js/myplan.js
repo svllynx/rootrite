@@ -6,7 +6,7 @@
 const MyPlan = (() => {
   const $ = id => document.getElementById(id);
   const db = () => rrClient();
-  const my = { sites: [], viewing: null, drafts: {}, loaded: false };
+  const my = { sites: [], plantings: [], checks: [], viewing: null, drafts: {}, loaded: false, openDiaries: new Set() };
   const LOCK = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>`;
   const speciesById = id => SPECIES.find(s => s.id === id);
 
@@ -326,6 +326,7 @@ const MyPlan = (() => {
             : `<button class="btn btn-line btn-sm" type="button" data-upgrade data-upgrade-from="sites">${LOCK} Part of Premium</button>`}
             <button class="link-btn" type="button" data-site-delete="${row.id}">Delete</button>
           </div>
+          ${diary(row)}
         </li>`;
     }).join("");
     const more = !isPremium() && count > 0 ? `
@@ -338,6 +339,109 @@ const MyPlan = (() => {
       : `<p class="pp-empty">${isPremium() ? "Nothing saved yet. Drop a pin, build a plan above, and save it here." : freeUsed() ? "You deleted your free site, so nothing is saved here. Premium saves up to 20 sites." : "Nothing saved yet. Your first plan above saves the site here."}</p>`;
   }
 
+  /* ---------- The tree diary ---------- */
+
+  const todayISO = () => new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Manila" });
+  const shortDate = d => new Date(`${d}T00:00:00+08:00`).toLocaleDateString("en-PH", { timeZone: "Asia/Manila", year: "numeric", month: "short", day: "numeric" });
+  const monthYear = d => new Date(`${d}T00:00:00+08:00`).toLocaleDateString("en-PH", { timeZone: "Asia/Manila", year: "numeric", month: "long" });
+  const nameOf = id => speciesById(id)?.name || id;
+  const COUNT_NAMES = { 1: "One-month", 3: "Three-month", 6: "Six-month", 12: "One-year", 24: "Two-year" };
+
+  function diary(row) {
+    if (!isPremium()) {
+      return `<div class="ms-diary-locked">
+        <p>Keep a tree diary: log what you plant, count survivors, and see when the next count is due.</p>
+        <button class="btn btn-ink btn-sm" type="button" data-upgrade data-upgrade-from="diary">${LOCK} Unlock the diary</button>
+      </div>`;
+    }
+    const plantings = my.plantings.filter(p => p.site_id === row.id);
+    const ids = new Set(plantings.map(p => p.id));
+    const checks = my.checks.filter(c => ids.has(c.planting_id));
+    const sum = Impact.summarise({ sites: [row], plantings, checks });
+    const planned = (row.plan?.trees || []).map(speciesById).filter(Boolean);
+    const others = [...SPECIES].filter(sp => !planned.includes(sp)).sort((a, b) => a.name.localeCompare(b.name));
+    const opts = list => list.map(sp => `<option value="${sp.id}">${esc(sp.name)}</option>`).join("");
+    return `
+      <details class="ms-diary" data-diary="${row.id}"${my.openDiaries.has(row.id) ? " open" : ""}>
+        <summary>Tree diary<span>${plantings.length ? `${fmt(sum.planted)} planted${sum.survival != null ? `, ${Impact.percent(sum.survival)} alive at last count` : ", not counted yet"}` : "Nothing logged yet"}</span></summary>
+        <div class="ms-diary-body">
+          <form class="ms-log" data-log="${row.id}" novalidate>
+            <div class="input"><label for="log-tree-${row.id}">Tree</label><select id="log-tree-${row.id}" name="species">
+              ${planned.length ? `<optgroup label="In your plan">${opts(planned)}</optgroup><optgroup label="All trees">${opts(others)}</optgroup>` : opts(others)}
+            </select></div>
+            <div class="input"><label for="log-count-${row.id}">How many</label><input id="log-count-${row.id}" name="count" type="number" min="1" inputmode="numeric"></div>
+            <div class="input"><label for="log-on-${row.id}">Planted on</label><input id="log-on-${row.id}" name="on" type="date" value="${todayISO()}" max="${todayISO()}"></div>
+            <button class="btn btn-ink" type="submit">Log planting</button>
+          </form>
+          ${plantings.length ? `<ul class="ms-plantings">${plantings.map(plantingRow).join("")}</ul>` : ""}
+        </div>
+      </details>`;
+  }
+
+  function plantingRow(p) {
+    const checks = my.checks.filter(c => c.planting_id === p.id).sort((a, b) => b.checked_on.localeCompare(a.checked_on) || b.created_at.localeCompare(a.created_at));
+    const last = checks[0];
+    const next = Planner.nextCount(p.planted_on, checks.map(c => c.checked_on), todayISO());
+    return `
+      <li class="ms-planting">
+        <div class="ms-planting-top">
+          <div><p class="ms-planting-name">${fmt(p.count)} ${esc(nameOf(p.species_id))}</p><p class="ms-planting-meta">Planted ${shortDate(p.planted_on)}</p></div>
+          <p class="ms-planting-alive">${last ? `<b>${Math.round(last.alive / p.count * 100)}%</b> alive: ${fmt(last.alive)} on ${shortDate(last.checked_on)}` : "Not counted yet"}</p>
+          <p class="ms-planting-next${next?.overdue ? " is-due" : ""}">${next ? `${COUNT_NAMES[next.months]} count ${next.overdue ? "was due" : "due"} ${monthYear(next.due)}` : "All counts done. Well kept."}</p>
+          <button class="link-btn" type="button" data-remove-planting="${p.id}">Remove</button>
+        </div>
+        <form class="ms-check" data-check="${p.id}" novalidate>
+          <div class="input"><label for="alive-${p.id}">Alive now</label><input id="alive-${p.id}" name="alive" type="number" min="0" max="${p.count}" inputmode="numeric"></div>
+          <div class="input"><label for="counted-${p.id}">Counted on</label><input id="counted-${p.id}" name="on" type="date" value="${todayISO()}" min="${p.planted_on}" max="${todayISO()}"></div>
+          <button class="btn btn-line btn-sm" type="submit">Add count</button>
+          ${last ? `<button class="link-btn" type="button" data-remove-check="${last.id}">Undo last count</button>` : ""}
+        </form>
+      </li>`;
+  }
+
+  async function logPlanting(f) {
+    const count = +f.count.value, on = f.on.value;
+    if (!Number.isInteger(count) || count < 1) return toast("Enter how many trees you planted.");
+    if (!on) return toast("Enter the planting date.");
+    if (on > todayISO()) return toast("The planting date can't be in the future. Your plan has the dates ahead.");
+    const { data, error } = await db().from("my_plantings").insert({ site_id: f.dataset.log, species_id: f.species.value, count, planted_on: on }).select().single();
+    if (error) return toast(rrErrorText(error));
+    my.plantings.push(data);
+    my.openDiaries.add(f.dataset.log);
+    paintSites();
+    toast(`Logged ${fmt(count)} ${nameOf(data.species_id)}. Count them in a month.`);
+  }
+
+  async function addCount(f) {
+    const planting = my.plantings.find(p => p.id === f.dataset.check);
+    const alive = f.alive.value === "" ? NaN : +f.alive.value, on = f.on.value;
+    if (!Number.isInteger(alive) || alive < 0) return toast("Enter how many trees are alive.");
+    if (alive > planting.count) return toast(`You planted ${fmt(planting.count)}, so no more than that can be alive.`);
+    if (!on || on < planting.planted_on || on > todayISO()) return toast("Choose a date between planting and today.");
+    const { data, error } = await db().from("my_checks").insert({ planting_id: planting.id, checked_on: on, alive }).select().single();
+    if (error) return toast(rrErrorText(error));
+    my.checks.push(data);
+    paintSites();
+    toast(`${Math.round(alive / planting.count * 100)}% alive. Count saved.`);
+  }
+
+  async function removePlanting(id) {
+    const p = my.plantings.find(x => x.id === id);
+    if (!p || !confirm(`Remove ${fmt(p.count)} ${nameOf(p.species_id)} and its counts?`)) return;
+    const { error } = await db().from("my_plantings").delete().eq("id", id);
+    if (error) return toast(rrErrorText(error));
+    my.plantings = my.plantings.filter(x => x.id !== id);
+    my.checks = my.checks.filter(c => c.planting_id !== id);
+    paintSites();
+  }
+
+  async function removeCheck(id) {
+    const { error } = await db().from("my_checks").delete().eq("id", id);
+    if (error) return toast(rrErrorText(error));
+    my.checks = my.checks.filter(c => c.id !== id);
+    paintSites();
+  }
+
   async function deleteSite(id) {
     const row = my.sites.find(r => r.id === id);
     if (!row) return;
@@ -346,6 +450,9 @@ const MyPlan = (() => {
     const { error } = await db().from("my_sites").delete().eq("id", id);
     if (error) return toast(rrErrorText(error));
     my.sites = my.sites.filter(r => r.id !== id);
+    const gone = new Set(my.plantings.filter(p => p.site_id === id).map(p => p.id));
+    my.plantings = my.plantings.filter(p => p.site_id !== id);
+    my.checks = my.checks.filter(c => !gone.has(c.planting_id));
     delete my.drafts[id];
     if (my.viewing === id) my.viewing = null;
     paint();
@@ -368,9 +475,13 @@ const MyPlan = (() => {
     const d = draft(src);
     treeChoices(src, d);
     const w = workOut(src, d);
+    const plantings = src.row ? my.plantings.filter(p => p.site_id === src.row.id) : [];
+    const ids = new Set(plantings.map(p => p.id));
     return {
       owner: state.account.name,
-      site: { name: src.row?.name || src.name || "Your site", location: src.location || src.site.location, lat: src.pin.lat, lon: src.pin.lon, site: { ...src.site, readings: src.readings } },
+      plantings,
+      checks: my.checks.filter(c => ids.has(c.planting_id)),
+      site: { id: src.row?.id || "current", name: src.row?.name || src.name || "Your site", location: src.location || src.site.location, lat: src.pin.lat, lon: src.pin.lon, site: { ...src.site, readings: src.readings } },
       plan: { ...w, tidal: src.site.soil === "tidal" }
     };
   }
@@ -413,6 +524,8 @@ const MyPlan = (() => {
     if (t.hasAttribute("data-plan-reminders")) return downloadReminders();
     if (t.dataset.siteOpen) { my.viewing = t.dataset.siteOpen; paint(); paintSites(); $("myplan").scrollIntoView(); return; }
     if (t.dataset.siteDelete) return deleteSite(t.dataset.siteDelete);
+    if (t.dataset.removePlanting) return removePlanting(t.dataset.removePlanting);
+    if (t.dataset.removeCheck) return removeCheck(t.dataset.removeCheck);
     if (t.dataset.sitePdf) {
       const row = my.sites.find(r => r.id === t.dataset.sitePdf);
       const src = { row, site: row.site, readings: row.site.readings || null, pin: { lat: row.lat, lon: row.lon }, name: row.name, location: row.location };
@@ -421,9 +534,15 @@ const MyPlan = (() => {
   }
 
   async function load() {
-    const { data, error } = await db().from("my_sites").select("*").order("created_at");
-    if (error) console.warn("RootRite: could not load saved sites", error.message);
-    my.sites = data || [];
+    const [sites, plantings, checks] = await Promise.all([
+      db().from("my_sites").select("*").order("created_at"),
+      db().from("my_plantings").select("*").order("planted_on").order("created_at"),
+      db().from("my_checks").select("*")
+    ]);
+    if (sites.error) console.warn("RootRite: could not load saved sites", sites.error.message);
+    my.sites = sites.data || [];
+    my.plantings = plantings.data || [];
+    my.checks = checks.data || [];
     my.loaded = true;
     paint();
     paintSites();
@@ -431,11 +550,22 @@ const MyPlan = (() => {
 
   function init() {
     document.addEventListener("click", onClick);
-    document.addEventListener("submit", e => {
-      if (!e.target.matches("[data-plan-save]")) return;
+    document.addEventListener("submit", async e => {
+      const f = e.target;
+      if (f.matches("[data-plan-save]")) { e.preventDefault(); saveCurrent(f); return; }
+      if (!f.matches("[data-log], [data-check]")) return;
       e.preventDefault();
-      saveCurrent(e.target);
+      // a double tap must not log the same trees twice
+      const btn = f.querySelector("[type=submit]");
+      if (btn.disabled) return;
+      btn.disabled = true;
+      try { await (f.dataset.log ? logPlanting(f) : addCount(f)); } finally { btn.disabled = false; }
     });
+    // remember which diaries are open when the list redraws
+    document.addEventListener("toggle", e => {
+      const id = e.target.dataset?.diary;
+      if (id) e.target.open ? my.openDiaries.add(id) : my.openDiaries.delete(id);
+    }, true);
     load();
   }
 
@@ -446,5 +576,20 @@ const MyPlan = (() => {
     paintSites();
   }
 
-  return { init, paint, paintSites, afterPlanChange, my };
+  // From the tree check: put a tree into the plan for the site above.
+  function addTree(id) {
+    if (!SiteMap.snapshot().pin) { toast("Drop a pin on the map first, so the plan can use your site's rainfall."); return; }
+    my.viewing = null;
+    const src = source(), d = draft(src);
+    if (!d.trees.includes(id)) {
+      if (d.trees.length >= Planner.MAX_TREES) { toast(`Your plan already has ${Planner.MAX_TREES} trees. Untick one first.`); $("myplan").scrollIntoView(); return; }
+      d.trees.push(id);
+    }
+    paint();
+    paintSites();
+    $("myplan").scrollIntoView();
+    toast(`${nameOf(id)} is in your planting plan.`);
+  }
+
+  return { init, paint, paintSites, afterPlanChange, addTree, my };
 })();

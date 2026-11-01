@@ -124,6 +124,7 @@ const TreeCheck = (() => {
           ${result.why.length ? `<div><h4 class="check-h">In its favor</h4><ul>${result.why.map(w => `<li>${esc(w)}</li>`).join("")}</ul></div>` : ""}
         </div>
         ${better.length ? `<h4 class="check-h">Native trees that fit better</h4>${altList(better)}` : ""}
+        <div><button class="btn btn-line btn-sm" type="button" data-plan-add="${sp.id}">Add ${esc(sp.name)} to my plan</button></div>
       </div>`;
   }
 
@@ -147,6 +148,8 @@ const TreeCheck = (() => {
       .map(sp => `<option value="${esc(sp.name)}">${sp.name === sp.sci ? "" : esc(sp.sci)}</option>`).join("");
     $("check-form").addEventListener("submit", e => { e.preventDefault(); paint(); });
     document.addEventListener("click", e => {
+      const add = e.target.closest("[data-plan-add]");
+      if (add) { MyPlan.addTree(add.dataset.planAdd); return; }
       const pick = e.target.closest("[data-check-tree]");
       if (!pick) return;
       $("check-tree").value = pick.dataset.checkTree;

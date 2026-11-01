@@ -93,6 +93,29 @@ const Planner = (() => {
     return [...tasks.entries()].sort((a, b) => a[0] - b[0]).map(([n, items]) => ({ n, ...at(n), when: n === now ? `Now (${label(at(n))})` : label(at(n)), items }));
   }
 
+  /* ---------- When to count the trees next ---------- */
+
+  const COUNT_MONTHS = [1, 3, 6, 12, 24];
+  const EARLY_DAYS = 14; // a count this close before a due date settles it
+
+  const addMonths = (iso, n) => {
+    const [y, m, d] = iso.split("-").map(Number);
+    const last = new Date(Date.UTC(y, m - 1 + n + 1, 0)).getUTCDate();
+    return new Date(Date.UTC(y, m - 1 + n, Math.min(d, last))).toISOString().slice(0, 10);
+  };
+
+  // The next count due for a planting, or null once the two-year count is done. Dates are yyyy-mm-dd.
+  function nextCount(plantedOn, checkDates, today) {
+    const lastCheck = [...checkDates].sort().pop() || "";
+    for (const months of COUNT_MONTHS) {
+      const due = addMonths(plantedOn, months);
+      const settledFrom = new Date(Date.parse(due) - EARLY_DAYS * 864e5).toISOString().slice(0, 10);
+      if (lastCheck >= settledFrom) continue;
+      return { due, months, overdue: due < today };
+    }
+    return null;
+  }
+
   /* ---------- A list to take to the nursery ---------- */
 
   function shoppingList({ siteName, place, rows, total, buy, spacing, cost, nurseries, cal }) {
@@ -145,5 +168,5 @@ const Planner = (() => {
     return ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//RootRite//Planting plan//EN", "CALSCALE:GREGORIAN", "METHOD:PUBLISH", ...events, "END:VCALENDAR", ""].join("\r\n");
   }
 
-  return { SPACINGS, SPARE, MAX_TREES, spacingFor, treesFor, shares, seedlings, plantingMonth, carePlan, shoppingList, reminders };
+  return { SPACINGS, SPARE, MAX_TREES, spacingFor, treesFor, shares, seedlings, plantingMonth, carePlan, nextCount, addMonths, shoppingList, reminders };
 })();
