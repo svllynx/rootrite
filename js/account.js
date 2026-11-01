@@ -32,6 +32,17 @@ async function rrCurrentAccount() {
   };
 }
 
+/* The organisations this person belongs to, with their role in each. */
+async function rrMyOrganisations() {
+  const client = rrClient();
+  if (!client) return [];
+  const { data: { session } } = await client.auth.getSession();
+  if (!session) return [];
+  const { data, error } = await client.from("org_members").select("role, organisations(id, name, kind)").eq("user_id", session.user.id);
+  if (error) { console.warn("RootRite: could not load organisations", error.message); return []; }
+  return (data || []).filter(m => m.organisations).map(m => ({ ...m.organisations, role: m.role }));
+}
+
 /* Demo checkout: switches the plan through a database function; no payment is taken. */
 async function rrSetPlan(plan) {
   const client = rrClient();

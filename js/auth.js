@@ -1,7 +1,7 @@
 /* RootRite: log in, register, forgot and reset password. */
 
 const params = new URLSearchParams(location.search);
-const nextPage = /^[a-z0-9-]+\.html(#[\w-]*)?$/i.test(params.get("next") || "") ? params.get("next") : "app.html";
+const nextPage = /^[a-z0-9-]+\.html(\?join=[a-f0-9]{32})?(#[\w-]*)?$/i.test(params.get("next") || "") ? params.get("next") : "app.html";
 const forms = [...document.querySelectorAll(".auth-form")];
 const tabs = [...document.querySelectorAll(".auth-switch [role=tab]")];
 const message = document.getElementById("form-message");

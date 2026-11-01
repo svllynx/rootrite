@@ -7,7 +7,7 @@ const PREMIUM_FLOOR = 40;   // ...and any further species scoring 40% or more
 const PREMIUM_MAX = 20;     // ...up to 20, so the list stays readable
 const COMPARE_MAX = 3;
 
-const state = { account: null, plan: "free", compare: [] };
+const state = { account: null, plan: "free", compare: [], orgs: [] };
 const $ = id => document.getElementById(id);
 const isPremium = () => state.plan === "premium";
 
@@ -24,6 +24,12 @@ async function boot() {
   }
   state.account = account;
   $("user-name").textContent = account.name;
+  // someone who confirmed their email after following an invite link goes back to it
+  try {
+    const join = localStorage.getItem("rootrite-join");
+    if (join) { location.replace(`org.html?join=${join}`); return; }
+  } catch (e) { /* storage unavailable */ }
+  state.orgs = await rrMyOrganisations();
   applyPlan(account.plan);
   const saved = restoreSite();
   document.body.classList.remove("is-checking");
@@ -31,6 +37,7 @@ async function boot() {
   SiteMap.init(saved);
   render(true);
   Nurseries.init();
+  initSaveSite();
 
   rrClient().auth.onAuthStateChange(event => {
     if (event === "SIGNED_OUT") location.replace("auth.html?mode=login");
@@ -38,15 +45,19 @@ async function boot() {
 }
 
 function applyPlan(plan) {
-  state.plan = plan === "premium" ? "premium" : "free";
+  const viaOrg = state.orgs.length > 0 && plan !== "premium"; // an Organisation plan includes Premium
+  state.plan = plan === "premium" || viaOrg ? "premium" : "free";
   document.body.dataset.plan = state.plan;
-  $("plan-badge").textContent = isPremium() ? "Premium" : "Free";
+  $("plan-badge").textContent = state.orgs.length ? "Organisation" : isPremium() ? "Premium" : "Free";
   document.querySelectorAll("[data-free-only]").forEach(n => { n.hidden = isPremium(); });
-  document.querySelectorAll("[data-premium-only]").forEach(n => { n.hidden = !isPremium(); });
+  document.querySelectorAll("[data-premium-only]").forEach(n => { n.hidden = !isPremium() || (viaOrg && n.matches("#downgrade, .plan-current")); });
+  document.querySelectorAll("[data-org-only]").forEach(n => { n.hidden = !state.orgs.length; });
+  document.querySelectorAll("[data-no-org]").forEach(n => { n.hidden = state.orgs.length > 0; });
   const since = state.account?.premiumSince ? new Date(state.account.premiumSince).toLocaleDateString("en-PH", { year: "numeric", month: "long", day: "numeric" }) : null;
   $("plan-status").textContent = isPremium()
     ? `You're on Premium${since ? ` since ${since}` : ""}. Thank you for supporting RootRite.`
     : `You're on the Free plan. Premium is ${RR_CONFIG.premiumPrice} a month.`;
+  if (viaOrg) $("plan-status").textContent = `You get Premium features through ${state.orgs[0].name}.`;
   if (!isPremium()) state.compare = [];
 }
 
@@ -148,6 +159,7 @@ function render(animate) {
   $("moist-field").hidden = s.soil === "tidal";
   saveSite(s);
   PlantCal.paint();
+  syncSaveName();
 
   const all = rank(s);
   const viable = all.filter(r => r.fit >= 45);
@@ -223,6 +235,50 @@ function render(animate) {
   renderCompare();
   if (typeof Nurseries !== "undefined") Nurseries.update();
   PlantCal.fillSheets();
+}
+
+/* ---------- Saving the site to an organisation's project ---------- */
+async function initSaveSite() {
+  if (!state.orgs.length) return;
+  const { data, error } = await rrClient().from("projects").select("id, name, org_id").in("org_id", state.orgs.map(o => o.id)).order("created_at");
+  if (error) return;
+  const box = $("save-site"), select = $("save-project");
+  $("save-site-empty").hidden = data.length > 0;
+  $("save-site-form").hidden = data.length === 0;
+  box.hidden = false;
+  const wanted = new URLSearchParams(location.search).get("project");
+  select.innerHTML = data.map(p => {
+    const org = state.orgs.length > 1 ? `${state.orgs.find(o => o.id === p.org_id)?.name}: ` : "";
+    return `<option value="${p.id}"${p.id === wanted ? " selected" : ""}>${esc(org + p.name)}</option>`;
+  }).join("");
+  $("save-site-form").addEventListener("submit", saveSiteToProject);
+  syncSaveName();
+}
+
+// Suggest the place name until the person types their own.
+function syncSaveName() {
+  const input = $("save-name");
+  if (input && !input.dataset.edited) input.value = $("site").location.value.trim();
+}
+
+async function saveSiteToProject(e) {
+  e.preventDefault();
+  const f = e.target, btn = f.querySelector("[type=submit]"), snap = SiteMap.snapshot();
+  const name = f.sname.value.trim(), area = f.area.value === "" ? 0 : +f.area.value;
+  if (!snap.pin) return toast("Drop a pin on the map first, so the site has a location.");
+  if (name.length < 2) return toast("Give this site a name.");
+  if (!(area >= 0)) return toast("Enter the area in hectares.");
+  btn.disabled = true;
+  const s = readSite();
+  const { error } = await rrClient().from("project_sites").insert({
+    project_id: f.project.value, name, location: s.location || null, lat: snap.pin.lat, lon: snap.pin.lon, area_ha: area,
+    site: { ...s, readings: snap.readings || null }
+  });
+  btn.disabled = false;
+  if (error) return toast(rrErrorText(error));
+  f.area.value = "";
+  $("save-name").dataset.edited = "";
+  toast("Site saved. Open your organisation to log plantings and download its report.");
 }
 
 /* ---------- Comparison (Premium) ---------- */
@@ -313,6 +369,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll("[data-price]").forEach(n => { n.textContent = RR_CONFIG.premiumPrice; });
 
   let typing;
+  $("save-name")?.addEventListener("input", e => { e.target.dataset.edited = "1"; });
   $("site").addEventListener("input", e => {
     if (e.target.name === "location") { clearTimeout(typing); typing = setTimeout(() => render(false), 250); return; }
     render(e.target.type !== "range");

@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Organisation · RootRite</title>
+<meta name="description" content="Team accounts, project sites, site reports and impact reports for tree-planting groups in the Philippines.">
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/png" href="assets/logo-mark.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@500;600&family=Work+Sans:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="app.css">
+</head>
+<body class="app-page is-checking">
+
+<header class="app-bar">
+  <a class="app-brand" href="index.html" aria-label="RootRite home">
+    <img src="assets/logo-mark.png" alt="" width="378" height="553">
+    <span>RootRite</span>
+  </a>
+  <nav class="app-nav" aria-label="Organisation" id="ws-nav" hidden>
+    <a href="#impact">Impact</a>
+    <a href="#projects">Projects</a>
+    <a href="#people">Team</a>
+    <a href="app.html">Site matcher</a>
+  </nav>
+  <div class="app-account">
+    <p class="app-user"><span id="user-name">Your account</span><span class="plan-badge" id="plan-badge">Organisation</span></p>
+    <button class="link-btn" type="button" id="sign-out">Log out</button>
+  </div>
+</header>
+
+<div class="app-gate" id="gate" role="status" aria-live="polite">
+  <p id="gate-text">Checking your account…</p>
+</div>
+
+<main class="app-main ws" id="app">
+
+  <!-- Joining through an invite link -->
+  <section class="ws-panel" id="join" hidden aria-labelledby="join-title">
+    <h1 id="join-title" class="h2">Join your team</h1>
+    <p class="ws-lead" id="join-text"></p>
+    <p class="notice notice-error" id="join-error" role="alert" hidden></p>
+    <div class="ws-actions" id="join-actions">
+      <button class="btn btn-ink" type="button" id="join-yes">Join the team</button>
+      <button class="link-btn" type="button" id="join-no">Not now</button>
+    </div>
+  </section>
+
+  <!-- Starting an organisation -->
+  <section class="ws-panel ws-start" id="start" hidden aria-labelledby="start-title">
+    <div>
+      <h1 id="start-title" class="h2">Plant as a team</h1>
+      <p class="ws-lead">For LGUs and barangays, schools, NGOs and companies running tree-planting projects.</p>
+      <ul class="ws-benefits">
+        <li><b>Team accounts.</b> Up to <span data-org-seats>10</span> people, added by invite link.</li>
+        <li><b>Several sites per project.</b> Each keeps its map pin, conditions and planting calendar.</li>
+        <li><b>PDF site reports.</b> For proposals and permit applications.</li>
+        <li><b>Impact reports.</b> Trees planted, survival rate, area covered and a rough carbon estimate.</li>
+        <li><b>Premium for everyone on the team.</b> Scores, 10+ species and comparison.</li>
+      </ul>
+    </div>
+    <form class="ws-card" id="start-form" novalidate>
+      <p class="ws-price"><span data-org-price>₱1,500</span> <small>a month</small></p>
+      <div class="input"><label for="org-name">Name of your group</label><input id="org-name" name="orgname" maxlength="120" required placeholder="For example, Barangay Daclan"></div>
+      <div class="input"><label for="org-kind">Type</label>
+        <select id="org-kind" name="kind">
+          <option value="lgu">LGU or barangay</option>
+          <option value="school">School or university</option>
+          <option value="ngo">NGO</option>
+          <option value="company">Company</option>
+          <option value="other">Other group</option>
+        </select>
+      </div>
+      <p class="notice notice-warn">Demo checkout. No payment is taken and no card details are needed.</p>
+      <p class="notice notice-error" id="start-error" role="alert" hidden></p>
+      <button class="btn btn-ink" type="submit">Start the Organisation plan</button>
+    </form>
+  </section>
+
+  <!-- The workspace -->
+  <div id="workspace" hidden>
+    <section class="ws-head" aria-labelledby="ws-title">
+      <div>
+        <h1 id="ws-title" class="h2"></h1>
+        <p class="ws-lead" id="ws-sub"></p>
+      </div>
+      <div class="input ws-switch" id="ws-switch" hidden><label for="ws-org">Organisation</label><select id="ws-org"></select></div>
+    </section>
+
+    <section class="app-section" id="impact" aria-labelledby="impact-title">
+      <div class="ws-section-head">
+        <h2 id="impact-title" class="h2">Impact</h2>
+        <div class="ws-tools">
+          <label for="impact-scope">Show</label>
+          <select id="impact-scope"></select>
+          <button class="btn btn-ink btn-sm" type="button" id="impact-pdf">Download impact report (PDF)</button>
+          <button class="btn btn-line btn-sm" type="button" id="impact-csv">Download data (CSV)</button>
+        </div>
+      </div>
+      <div id="impact-body" aria-live="polite"></div>
+      <details class="ws-method">
+        <summary>How these figures are worked out</summary>
+        <ul id="impact-method"></ul>
+      </details>
+    </section>
+
+    <section class="app-section" id="projects" aria-labelledby="projects-title">
+      <div class="ws-section-head">
+        <h2 id="projects-title" class="h2">Projects</h2>
+      </div>
+      <form class="ws-inline" id="project-form" novalidate>
+        <div class="input"><label for="project-name">New project</label><input id="project-name" name="pname" maxlength="120" placeholder="For example, School Tree Drive 2027"></div>
+        <button class="btn btn-ink" type="submit">Add project</button>
+      </form>
+      <div id="project-list"></div>
+    </section>
+
+    <section class="app-section" id="people" aria-labelledby="people-title">
+      <div class="ws-section-head">
+        <h2 id="people-title" class="h2">Team</h2>
+        <p class="ws-lead" id="people-count"></p>
+      </div>
+      <div class="ws-team">
+        <ul class="ws-members" id="member-list"></ul>
+        <div class="ws-card" id="invite-box" hidden>
+          <h3>Invite people</h3>
+          <p>Share this link with your team. It works for 14 days, and each person logs in or creates a free account to join.</p>
+          <div id="invite-list"></div>
+          <button class="btn btn-ink btn-sm" type="button" id="invite-new">Create an invite link</button>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/account.js"></script>
+<script src="js/species.js"></script>
+<script src="js/calendar.js"></script>
+<script src="js/impact.js"></script>
+<script src="js/reports.js"></script>
+<script src="js/org.js"></script>
+</body>
+</html>

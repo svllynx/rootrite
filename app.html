@@ -30,6 +30,7 @@
     <a href="#compare">Compare</a>
     <a href="#scan">AI Site Scan</a>
     <a href="#plan">Plan</a>
+    <a href="org.html" data-org-only hidden>Organisation</a>
   </nav>
   <div class="app-account">
     <p class="app-user"><span id="user-name">Your account</span><span class="plan-badge" id="plan-badge">Free</span></p>
@@ -157,6 +158,17 @@
           </fieldset>
         </form>
 
+        <aside class="save-site" id="save-site" hidden aria-label="Save this site to a project">
+          <h2 class="save-site-title">Save this site to a project</h2>
+          <p class="save-site-empty" id="save-site-empty" hidden>Add a project in your <a href="org.html#projects">organisation</a> first, then save sites to it here.</p>
+          <form class="save-site-form" id="save-site-form" hidden novalidate>
+            <div class="input"><label for="save-project">Project</label><select id="save-project" name="project"></select></div>
+            <div class="input"><label for="save-name">Site name</label><input id="save-name" name="sname" maxlength="120" placeholder="For example, North hillside"></div>
+            <div class="input"><label for="save-area">Area (hectares)</label><input id="save-area" name="area" type="number" min="0" step="0.01" placeholder="2.5"></div>
+            <button class="btn btn-ink" type="submit">Save site</button>
+          </form>
+        </aside>
+
         <div class="results" id="results" aria-live="polite"></div>
       </div>
     </div>
@@ -278,6 +290,22 @@
         </div>
         <button class="btn btn-sky" type="button" data-upgrade data-free-only>Upgrade to Premium</button>
         <p class="plan-current" data-premium-only>Your current plan</p>
+      </article>
+
+      <article class="plan plan-org" aria-labelledby="org-name">
+        <div class="plan-top">
+          <h3 class="plan-name" id="org-name">Organisation</h3>
+          <div class="plan-cost"><p class="plan-price" data-org-price>₱1,500</p><p class="plan-per">a month, for up to <span data-org-seats>10</span> people</p></div>
+        </div>
+        <p class="plan-plus">Everything in Premium, for your whole team, plus:</p>
+        <div class="plan-groups">
+          <div><h4>Team accounts</h4><p>For LGUs and barangays, schools, NGOs and companies. Add people with an invite link.</p></div>
+          <div><h4>Several sites per project</h4><p>Each keeps its map pin, conditions and planting calendar.</p></div>
+          <div><h4>PDF site reports</h4><p>For proposals and permit applications.</p></div>
+          <div><h4>Impact reports</h4><p>Trees planted, survival rate, area covered and a rough carbon estimate.</p></div>
+        </div>
+        <a class="btn btn-sky" href="org.html" data-no-org>Start an organisation</a>
+        <a class="btn btn-sky" href="org.html" data-org-only hidden>Open your organisation</a>
       </article>
     </div>
   </section>
