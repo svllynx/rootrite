@@ -444,3 +444,142 @@ $$;
 
 revoke execute on function public.create_organisation(text, text), public.invite_details(text), public.join_organisation(text), public.list_org_members(uuid), public.remove_org_member(uuid, uuid) from public, anon;
 grant execute on function public.create_organisation(text, text), public.invite_details(text), public.join_organisation(text), public.list_org_members(uuid), public.remove_org_member(uuid, uuid) to authenticated;
+
+-- 7. Personal sites, planting plans and the tree diary. Each person sees only their own.
+-- Free accounts get one saved site, once; deleting it doesn't give the free site back. Premium and
+-- Organization members can save up to 20, and only they can keep a tree diary.
+alter table public.profiles add column if not exists free_site_used boolean not null default false;
+
+create or replace function public.has_premium(u uuid) returns boolean
+language sql stable security definer set search_path = '' as $$
+  select exists (select 1 from public.profiles where id = u and plan = 'premium')
+      or exists (select 1 from public.org_members where user_id = u);
+$$;
+revoke execute on function public.has_premium(uuid) from public, anon, authenticated;
+
+create table if not exists public.my_sites (
+  id         uuid primary key default gen_random_uuid(),
+  user_id    uuid not null default auth.uid() references auth.users (id) on delete cascade,
+  name       text not null check (char_length(trim(name)) between 2 and 120),
+  location   text check (char_length(location) <= 160),
+  lat        double precision not null check (lat between 4 and 22),
+  lon        double precision not null check (lon between 116 and 127),
+  site       jsonb not null default '{}' check (pg_column_size(site) < 20000),
+  plan       jsonb not null default '{}' check (pg_column_size(plan) < 4000),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create index if not exists my_sites_user_idx on public.my_sites (user_id);
+
+create table if not exists public.my_plantings (
+  id         uuid primary key default gen_random_uuid(),
+  user_id    uuid not null default auth.uid() references auth.users (id) on delete cascade,
+  site_id    uuid not null references public.my_sites (id) on delete cascade,
+  species_id text not null check (char_length(species_id) between 1 and 60),
+  count      integer not null check (count between 1 and 10000000),
+  planted_on date not null,
+  notes      text check (char_length(notes) <= 400),
+  created_at timestamptz not null default now()
+);
+create index if not exists my_plantings_site_idx on public.my_plantings (site_id);
+
+create table if not exists public.my_checks (
+  id          uuid primary key default gen_random_uuid(),
+  user_id     uuid not null default auth.uid() references auth.users (id) on delete cascade,
+  planting_id uuid not null references public.my_plantings (id) on delete cascade,
+  checked_on  date not null,
+  alive       integer not null check (alive >= 0),
+  notes       text check (char_length(notes) <= 400),
+  created_at  timestamptz not null default now()
+);
+create index if not exists my_checks_planting_idx on public.my_checks (planting_id);
+
+alter table public.my_sites enable row level security;
+alter table public.my_plantings enable row level security;
+alter table public.my_checks enable row level security;
+
+drop policy if exists "Own sites" on public.my_sites;
+create policy "Own sites" on public.my_sites for all to authenticated
+  using (user_id = (select auth.uid())) with check (user_id = (select auth.uid()));
+drop policy if exists "Own plantings" on public.my_plantings;
+create policy "Own plantings" on public.my_plantings for all to authenticated
+  using (user_id = (select auth.uid()))
+  with check (user_id = (select auth.uid()) and exists (select 1 from public.my_sites s where s.id = site_id));
+drop policy if exists "Own checks" on public.my_checks;
+create policy "Own checks" on public.my_checks for all to authenticated
+  using (user_id = (select auth.uid()))
+  with check (user_id = (select auth.uid()) and exists (select 1 from public.my_plantings p where p.id = planting_id));
+
+revoke all on public.my_sites, public.my_plantings, public.my_checks from anon, authenticated;
+grant select, delete on public.my_sites, public.my_plantings, public.my_checks to authenticated;
+grant insert (name, location, lat, lon, site, plan), update (name, plan) on public.my_sites to authenticated;
+grant insert (site_id, species_id, count, planted_on, notes) on public.my_plantings to authenticated;
+grant insert (planting_id, checked_on, alive, notes) on public.my_checks to authenticated;
+
+create or replace function public.check_my_site() returns trigger
+language plpgsql security definer set search_path = '' as $$
+declare
+  me uuid := (select auth.uid());
+  used boolean;
+  saved integer;
+begin
+  if tg_op = 'UPDATE' then
+    new.updated_at := now();
+    return new;
+  end if;
+  if me is null then raise exception 'Not signed in'; end if;
+  select free_site_used into used from public.profiles where id = me for update;
+  select count(*) into saved from public.my_sites where user_id = me;
+  if public.has_premium(me) then
+    if saved >= 20 then raise exception 'You can save up to 20 sites. Delete one first.'; end if;
+  else
+    if coalesce(used, false) or saved >= 1 then
+      raise exception 'Your free saved site has been used. Premium saves up to 20 sites.';
+    end if;
+    update public.profiles set free_site_used = true where id = me;
+  end if;
+  return new;
+end;
+$$;
+drop trigger if exists my_sites_check on public.my_sites;
+create trigger my_sites_check before insert or update on public.my_sites for each row execute function public.check_my_site();
+
+create or replace function public.check_my_planting() returns trigger
+language plpgsql security definer set search_path = '' as $$
+begin
+  if not public.has_premium((select auth.uid())) then
+    raise exception 'The tree diary is part of Premium.';
+  end if;
+  if new.planted_on > (now() at time zone 'Asia/Manila')::date + 1 then
+    raise exception 'The planting date is in the future.';
+  end if;
+  return new;
+end;
+$$;
+drop trigger if exists my_plantings_check on public.my_plantings;
+create trigger my_plantings_check before insert on public.my_plantings for each row execute function public.check_my_planting();
+
+create or replace function public.check_my_check() returns trigger
+language plpgsql security definer set search_path = '' as $$
+declare
+  p public.my_plantings;
+begin
+  if not public.has_premium((select auth.uid())) then
+    raise exception 'The tree diary is part of Premium.';
+  end if;
+  select * into p from public.my_plantings where id = new.planting_id;
+  if new.alive > p.count then
+    raise exception 'More trees alive than were planted (%).', p.count;
+  end if;
+  if new.checked_on < p.planted_on then
+    raise exception 'The check is dated before the planting.';
+  end if;
+  if new.checked_on > (now() at time zone 'Asia/Manila')::date + 1 then
+    raise exception 'The check date is in the future.';
+  end if;
+  return new;
+end;
+$$;
+drop trigger if exists my_checks_check on public.my_checks;
+create trigger my_checks_check before insert on public.my_checks for each row execute function public.check_my_check();
+revoke execute on function public.check_my_site(), public.check_my_planting(), public.check_my_check() from public, anon, authenticated;

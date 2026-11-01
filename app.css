@@ -670,3 +670,102 @@
   .check-reasons { grid-template-columns: 1fr; }
   .check-unlock { flex-direction: column; align-items: stretch; }
 }
+
+/* ---------- The planting plan ---------- */
+.pp-empty { padding: 28px 32px; font-size: 18px; color: var(--soft); background: var(--sage); max-width: 72ch; }
+.pp-banner { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; margin-bottom: 20px; padding: 16px 20px; background: var(--sage); }
+.pp-banner p { font-size: 16px; max-width: 64ch; }
+.pp-banner b { font-weight: 500; }
+.pp-banner .btn { display: inline-flex; align-items: center; gap: 8px; }
+.pp-banner-quiet { background: none; padding: 0; }
+.pp-form { display: grid; gap: 20px; padding: 24px; background: var(--sage); }
+.pp-trees { border: 0; margin: 0; padding: 0; min-width: 0; }
+.pp-trees legend { padding: 0; margin-bottom: 10px; font-size: 16px; color: var(--soft); }
+.pp-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.pp-chip { position: relative; cursor: pointer; }
+.pp-chip input { position: absolute; inset: 0; margin: 0; opacity: 0; cursor: pointer; }
+.pp-chip span { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 6px 14px; font: 500 16px/1.25 var(--text); background: var(--paper); transition: background-color .2s var(--ease); }
+.pp-chip small { font: 400 14px/1.2 var(--text); color: var(--soft); }
+.pp-chip input:checked + span { background: var(--green); color: var(--on-dark); }
+.pp-chip input:checked + span small { color: var(--on-dark); opacity: .85; }
+.pp-chip input:focus-visible + span { outline: 3px solid var(--sky); outline-offset: 2px; }
+.pp-fields { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; align-items: end; }
+.pp-fields select { width: 100%; min-height: 48px; padding: 0 12px; font: 400 18px/1.2 var(--text); color: var(--ink); background: var(--paper); border: 2px solid var(--paper); border-radius: 0; }
+.pp-fields select:focus { outline: none; border-color: var(--green); }
+.pp-fields .input input { border-color: var(--paper); }
+.pp-fields .input input:focus { border-color: var(--green); }
+.pp-prompt { margin-top: 20px; padding: 18px 20px; font-size: 16px; background: var(--sage); }
+.pp-tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; margin: 4px 0 0; }
+.pp-tiles > div { padding: 24px; background: var(--green); color: var(--on-dark); }
+.pp-tiles dt { font-size: 16px; opacity: .85; }
+.pp-tiles dd { margin: 8px 0 0; font: 600 clamp(32px, 3.4vw, 52px)/1.05 var(--display); letter-spacing: -0.03em; overflow-wrap: anywhere; }
+.pp-tiles dd.pp-tile-months { font-size: clamp(24px, 2.2vw, 32px); line-height: 1.15; }
+.pp-tiles dd.pp-tile-note { margin-top: 10px; font: 400 14px/1.4 var(--text); letter-spacing: 0; opacity: .85; }
+.pp-split { width: 100%; margin-top: 4px; border-collapse: collapse; font-size: 16px; }
+.pp-split th, .pp-split td { padding: 10px 16px; text-align: left; font-weight: 400; }
+.pp-split thead th { font-size: 14px; color: var(--soft); }
+.pp-split tbody tr:nth-child(odd) { background: var(--sage); }
+.pp-split tbody th { font-weight: 500; }
+.pp-h { margin: 36px 0 12px; font: 600 var(--t-sub)/1.1 var(--display); letter-spacing: -0.02em; }
+.pp-months { display: grid; gap: 4px; }
+.pp-months > li { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 24px; padding: 16px 20px; background: var(--sage); }
+.pp-months > li:nth-child(even) { background: #EFF0E6; }
+.pp-when { font: 500 16px/1.35 var(--text); }
+.pp-months h4 { margin: 0; font: 600 16px/1.3 var(--display); color: var(--green); }
+.pp-months p { font-size: 16px; }
+.pp-months div p + h4 { margin-top: 10px; }
+.pp-months div > p:not(.pp-when) { max-width: 70ch; }
+.pp-care { display: grid; gap: 4px; margin: 0; }
+.pp-care > div { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 24px; padding: 16px 20px; background: var(--sage); }
+.pp-care dt { font: 500 16px/1.35 var(--text); }
+.pp-care dd { margin: 0; font-size: 16px; max-width: 70ch; }
+.pp-list { margin: 0; padding: 20px; font: 400 15px/1.55 ui-monospace, "Cascadia Mono", Menlo, Consolas, monospace; white-space: pre-wrap; overflow-wrap: anywhere; background: var(--sage); }
+.pp-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 24px; }
+.pp-actions .btn { display: inline-flex; align-items: center; gap: 8px; }
+.pp-actions .btn-line { background: var(--sage); }
+.pp-actions .btn-line:hover { background: var(--sage-2); }
+.pp-save { display: flex; flex-wrap: wrap; align-items: end; gap: 8px; margin-top: 24px; padding: 20px; background: var(--sage); }
+.pp-save .input { flex: 1 1 280px; max-width: 520px; }
+.pp-save .btn { min-height: 48px; }
+.pp-save .input input { border-color: var(--paper); }
+.pp-note { margin-top: 16px; font-size: 14px; color: var(--soft); max-width: 80ch; }
+.pp-offer { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 4px; }
+.pp-hidden { display: grid; gap: 16px; align-content: center; padding: 28px; background: var(--sage); }
+.pp-hidden li { display: grid; gap: 6px; font-size: 16px; color: var(--soft); }
+.pp-hidden .cmp-hidden { margin: 0; }
+.pp-claim { display: grid; gap: 14px; align-content: start; padding: 28px; background: var(--green); color: var(--on-dark); }
+.pp-claim h3 { font: 600 var(--t-sub)/1.1 var(--display); letter-spacing: -0.02em; margin: 0; }
+.pp-claim p { font-size: 16px; max-width: 52ch; }
+.pp-claim .input label { color: var(--on-dark); opacity: .85; }
+.pp-claim .input input { border-color: var(--paper); }
+.pp-claim .btn-ink { background: var(--sky); color: var(--ink); }
+.pp-claim .btn-ink:hover { background: #A0D6F4; }
+.pp-claim .btn { display: inline-flex; align-items: center; gap: 8px; justify-self: start; }
+.pp-offer-used { grid-template-columns: minmax(0, 1fr); max-width: 720px; }
+
+/* ---------- My sites ---------- */
+.ms-list { display: grid; gap: 4px; }
+.ms-site { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; padding: 18px 20px; background: var(--sage); }
+.ms-site.is-open { background: var(--sage-2); }
+.ms-head { flex: 1 1 420px; min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 4px 24px; align-items: baseline; }
+.ms-name { font: 600 20px/1.25 var(--display); letter-spacing: -0.01em; }
+.ms-meta { font-size: 14px; color: var(--soft); }
+.ms-line { font-size: 16px; }
+.ms-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
+.ms-actions .btn { display: inline-flex; align-items: center; gap: 8px; }
+.ms-more { margin-top: 4px; }
+.ms-more .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; flex: 0 0 auto; white-space: nowrap; }
+@media (max-width: 900px) {
+  .pp-fields { grid-template-columns: 1fr 1fr; }
+  .pp-offer { grid-template-columns: minmax(0, 1fr); }
+  .pp-months > li, .pp-care > div { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+  .ms-head { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 760px) {
+  .pp-form { padding: 20px 16px; }
+  .pp-fields { grid-template-columns: minmax(0, 1fr); }
+  .pp-tiles { grid-template-columns: minmax(0, 1fr); }
+  .pp-actions .btn { flex: 1 1 100%; justify-content: center; }
+  .pp-save .btn { flex: 1 1 100%; }
+  .pp-empty { padding: 20px 16px; font-size: 16px; }
+}

@@ -39,6 +39,7 @@ async function boot() {
   render(true);
   Nurseries.init();
   initSaveSite();
+  MyPlan.init();
 
   rrClient().auth.onAuthStateChange(event => {
     if (event === "SIGNED_OUT") location.replace("auth.html?mode=login");
@@ -163,6 +164,7 @@ function render(animate) {
   PlantCal.paint();
   syncSaveName();
   TreeCheck.paint();
+  MyPlan.paint();
 
   const all = rank(s);
   const viable = all.filter(r => r.fit >= 45);
@@ -368,17 +370,24 @@ async function confirmUpgrade() {
     const profile = await rrSetPlan("premium");
     state.account.premiumSince = profile?.premium_since || new Date().toISOString();
     applyPlan("premium");
+    MyPlan.afterPlanChange();
     // Unlocked from the comparison: show what they came for, already filled in
     const unlocked = state.unlockCompare ? (state.lastShown || []).slice(0, COMPARE_MAX).map(r => r.sp.id) : [];
     if (unlocked.length > 1) state.compare = unlocked;
     render(true);
     $("checkout").close();
     if (unlocked.length > 1) {
-      $("compare").scrollIntoView();
+      $("compare").scrollIntoView({ behavior: "instant" });
       toast(`Premium is active. Here are your top ${unlocked.length} side by side.`);
     } else if (state.upgradeFrom === "tree-check") {
-      $("tree-check").scrollIntoView();
+      $("tree-check").scrollIntoView({ behavior: "instant" });
       toast("Premium is active. Here's the full answer for your tree.");
+    } else if (["plan", "reminders"].includes(state.upgradeFrom)) {
+      $("myplan").scrollIntoView({ behavior: "instant" });
+      toast("Premium is active. You can now plan every site and add reminders.");
+    } else if (state.upgradeFrom === "sites") {
+      $("mysites").scrollIntoView({ behavior: "instant" });
+      toast("Premium is active. You can now save up to 20 sites.");
     } else {
       toast("Premium is active. Your results now show scores and 10+ species.");
     }
@@ -397,6 +406,7 @@ async function downgrade() {
     await rrSetPlan("free");
     state.account.premiumSince = null;
     applyPlan("free");
+    MyPlan.afterPlanChange();
     render(true);
     toast("You're back on the Free plan.");
   } catch (err) { toast(rrErrorText(err)); }

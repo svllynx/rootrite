@@ -26,9 +26,10 @@
   <nav class="app-nav" aria-label="App">
     <a href="#match">Site matcher</a>
     <a href="#compare">Compare</a>
+    <a href="#myplan">Planting plan</a>
+    <a href="#mysites">My sites</a>
     <a href="#planting">When to plant</a>
     <a href="#nurseries">Nurseries</a>
-    <a href="#scan">AI Site Scan</a>
     <a href="#plan">Plan</a>
     <a href="org.html" data-org-only hidden>Organization</a>
   </nav>
@@ -196,6 +197,24 @@
     <div id="compare-body"></div>
   </section>
 
+  <!-- The planting plan: seedlings to buy, care by the month, and the list for the nursery -->
+  <section class="app-section" id="myplan" aria-labelledby="myplan-title">
+    <div class="app-section-head">
+      <h2 id="myplan-title" class="h2">Your planting plan</h2>
+      <p class="app-section-lead">How many seedlings to buy, what they'll cost, and what to do each month until a year after planting.</p>
+    </div>
+    <div id="myplan-body"></div>
+  </section>
+
+  <!-- Saved sites -->
+  <section class="app-section" id="mysites" aria-labelledby="mysites-title">
+    <div class="app-section-head">
+      <h2 id="mysites-title" class="h2">My sites</h2>
+      <p class="app-section-lead" id="mysites-count"></p>
+    </div>
+    <div id="mysites-body"></div>
+  </section>
+
   <!-- When to plant: the calendar for the site's own rainfall -->
   <section class="app-section planting" id="planting" aria-labelledby="planting-title">
     <div class="app-section-head">
@@ -353,7 +372,11 @@
 <script src="js/sitemap.js"></script>
 <script src="js/calendar.js"></script>
 <script src="js/nurseries.js"></script>
+<script src="js/planner.js"></script>
+<script src="js/impact.js"></script>
+<script src="js/reports.js"></script>
 <script src="js/treecheck.js"></script>
+<script src="js/myplan.js"></script>
 <script src="js/dashboard.js"></script>
 </body>
 </html>

@@ -70,8 +70,9 @@ const Reports = (() => {
         text(subtitle, x, { size: 10, color: SOFT, width: INNER - 34 });
         y += 20;
       },
-      h2(t) {
-        room(90);
+      // needs: room for what follows, so a heading never sits alone at the foot of a page
+      h2(t, needs = 90) {
+        room(needs);
         y += 14;
         text(t, MARGIN, { bold: true, size: 13, color: GREEN });
         y += 16;
@@ -200,10 +201,90 @@ const Reports = (() => {
   const SPACE = { S: "House lot", M: "Large yard", L: "Open land" };
   const SHORT_STATUS = { best: "Best", ok: "Can plant", heavy: "Very wet", late: "Dry ahead", dry: "Too dry" };
 
+  // Conditions and recommended trees; `who` is whoever set the choices, for example "the team".
+  function conditionSections(doc, s, r, who) {
+    if (s.elev == null || !s.soil) return doc.h2("Site conditions");
+    doc.h2("Site conditions");
+    {
+      const type = r.monthly?.length === 12 ? PlantCal.TYPES[PlantCal.calendar(r.monthly).type] : null;
+      const auto = `Map pin estimate; ${who} can correct it`;
+      doc.table(["Condition", "Value", "Basis"], [
+        ["Elevation", `${fmt(s.elev)} m`, `Copernicus terrain, via Open-Meteo. ${auto}`],
+        ["Average temperature", `${tempAt(s.elev)} °C`, "Estimated from elevation"],
+        ["Rainfall", `About ${fmt(s.rain)} mm a year`, r.years ? `ERA5 records ${r.years}, via Open-Meteo` : auto],
+        ["Soil", cap(SOIL_WORDS[s.soil]), r.texture ? `SoilGrids (ISRIC): ${Math.round(r.texture.clay)}% clay, ${Math.round(r.texture.sand)}% sand${r.texture.awayKm ? `, nearest mapped soil ${r.texture.awayKm} km away` : ""}` : auto],
+        ["Slope", ["Flat", "Gentle", "Steep"][s.slope], r.slopeDeg != null ? `About ${Math.round(r.slopeDeg)} degrees, from terrain data` : auto],
+        ["Drainage", s.soil === "tidal" ? "Tidal" : cap(MOIST_WORDS[s.moist]), "Estimated from soil, slope and rain"],
+        ["Sunlight", SUN[s.sun], `Set by ${who}`],
+        ["Space", SPACE[s.space], `Set by ${who}`],
+        ["Planting purpose", s.purpose === "any" ? "Any" : cap(USE_WORDS[s.purpose] || ""), `Set by ${who}`],
+        ...(type ? [["Climate type", `Closest to PAGASA ${type.name}`, "Estimated from this site's rainfall pattern, not PAGASA's map"]] : [])
+      ], [0.2, 0.28, 0.52]);
+
+      doc.h2("Recommended native trees", 170);
+      const ranked = rank(s).filter(x => x.fit >= 45).slice(0, 10);
+      if (ranked.length) {
+        doc.table(["Tree", "Scientific name", "Status", "Mature height", "Growth", "Fit"],
+          ranked.map(x => [x.sp.name, x.sp.sci, x.sp.status ? `${x.sp.native}, ${x.sp.status}` : x.sp.native, x.sp.height, x.sp.growth, `${x.fit}%`]),
+          [0.2, 0.28, 0.17, 0.15, 0.11, 0.09]);
+        doc.para("Fit compares this site with general guidance for each tree. Status codes follow the species list: CR critically endangered, EN endangered, VU vulnerable, NT near threatened.", { size: 8, color: SOFT });
+      } else {
+        doc.para("No tree in RootRite's list fits these conditions well. Ask the local CENRO what grows nearby.");
+      }
+    }
+  }
+
+  function whenSection(doc, r) {
+    if (r.monthly?.length === 12) {
+      const cal = PlantCal.calendar(r.monthly);
+      doc.h2("When to plant");
+      doc.para(`Best months: ${PlantCal.monthRange(cal.best)}.`, { bold: true, size: 11 });
+      doc.para(cal.noWindow ? "No stretch of the year here suits seedlings on rain alone, so plan to water or shelter them."
+        : cal.seasonal ? `The rains usually settle in by ${PlantCal.MONTHS[cal.start]}. Seedlings need time to root before any dry spell, so RootRite looks for about three wet months in a row.`
+        : "There is no dry season here, so planting is possible most of the year. These months are safest, as the rain picks up again.");
+      doc.table(PlantCal.MONTHS.map(m => m.slice(0, 3)),
+        [cal.monthly.map(v => `${fmt(Math.round(v))} mm`), cal.status.map(x => SHORT_STATUS[x])],
+        Array(12).fill(1 / 12), { size: 7, pad: 3 });
+      doc.para(`Average rainfall each month, ${r.years}. ERA5 records, via Open-Meteo.`, { size: 8, color: SOFT });
+    }
+  }
+
+  function nurserySection(doc, nurseries) {
+    if (nurseries.length) {
+      doc.h2("Where to ask for seedlings", 150);
+      doc.table(["Place", "Type", "Distance", "Phone"],
+        nurseries.map(n => [n.name, n.type, `${n.km < 1 ? "Under 1" : fmt(Math.round(n.km))} km`, n.phone || "-"]), [0.4, 0.3, 0.12, 0.18]);
+      doc.para("Straight-line distance. Stock is not confirmed, so call before you travel.", { size: 8, color: SOFT });
+    }
+  }
+
+  function plantedSection(doc, site, plantings, checks, who) {
+    if (plantings.length) {
+      doc.h2("Planted so far");
+      const summary = Impact.summarise({ sites: [site], plantings, checks });
+      doc.table(["Tree", "Planted on", "Trees", "Last check", "Alive", "Survival"],
+        plantings.map(p => {
+          const c = checks.filter(x => x.planting_id === p.id).sort((a, b) => b.checked_on.localeCompare(a.checked_on))[0];
+          const sp = SPECIES.find(x => x.id === p.species_id);
+          return [sp?.name || p.species_id, longDate(p.planted_on), fmt(p.count), c ? longDate(c.checked_on) : "Not yet", c ? fmt(c.alive) : "-", c ? `${Math.round(c.alive / p.count * 100)}%` : "-"];
+        }), [0.28, 0.17, 0.11, 0.17, 0.12, 0.15]);
+      doc.para(`${fmt(summary.planted)} trees logged by ${who}. Survival covers ${fmt(summary.checkedPlanted)} trees with a survival check.`, { size: 8, color: SOFT });
+    }
+  }
+
+  function aboutSection(doc) {
+    doc.h2("About this report");
+    doc.bullets([
+      "This report supports planning and proposals. It is not a DENR assessment or a permit, and it does not replace a site visit.",
+      "Check with the local CENRO which clearances and permits apply before planting, especially on public land, in protected areas or in mangroves.",
+      "Site conditions are estimates from open data: Copernicus terrain and ERA5 rainfall via Open-Meteo, SoilGrids (ISRIC) and OpenStreetMap. Soil and drainage are the least certain, so check them on the ground.",
+      "Tree heights, care notes and fit scores are general guidance, not survey data."
+    ]);
+  }
+
   async function buildSite({ org, project, site, plantings, checks }) {
     await loadLibrary();
     const s = site.site || {}, r = s.readings || {};
-    const known = s.elev != null && s.soil;
     const [logo, map, nurseries] = await Promise.all([smallLogo().catch(() => null), mapImage(site.lat, site.lon), nearbyNurseries(site.lat, site.lon)]);
     const doc = makeDoc(`Prepared for ${org.name} on ${today()}. Estimates for planning; check with the local CENRO.`);
     doc.header(`Site report: ${site.name}`, `${org.name}  |  Project: ${project.name}  |  ${today()}`, logo);
@@ -217,74 +298,53 @@ const Reports = (() => {
     doc.gap(10);
     if (map) doc.image(map, INNER, INNER * 400 / 998, "Site location. Map data (c) OpenStreetMap contributors.");
 
-    doc.h2("Site conditions");
-    if (known) {
-      const type = r.monthly?.length === 12 ? PlantCal.TYPES[PlantCal.calendar(r.monthly).type] : null;
-      const auto = "Map pin estimate; the team can correct it";
-      doc.table(["Condition", "Value", "Basis"], [
-        ["Elevation", `${fmt(s.elev)} m`, `Copernicus terrain, via Open-Meteo. ${auto}`],
-        ["Average temperature", `${tempAt(s.elev)} °C`, "Estimated from elevation"],
-        ["Rainfall", `About ${fmt(s.rain)} mm a year`, r.years ? `ERA5 records ${r.years}, via Open-Meteo` : auto],
-        ["Soil", cap(SOIL_WORDS[s.soil]), r.texture ? `SoilGrids (ISRIC): ${Math.round(r.texture.clay)}% clay, ${Math.round(r.texture.sand)}% sand${r.texture.awayKm ? `, nearest mapped soil ${r.texture.awayKm} km away` : ""}` : auto],
-        ["Slope", ["Flat", "Gentle", "Steep"][s.slope], r.slopeDeg != null ? `About ${Math.round(r.slopeDeg)} degrees, from terrain data` : auto],
-        ["Drainage", s.soil === "tidal" ? "Tidal" : cap(MOIST_WORDS[s.moist]), "Estimated from soil, slope and rain"],
-        ["Sunlight", SUN[s.sun], "Set by the team"],
-        ["Space", SPACE[s.space], "Set by the team"],
-        ["Planting purpose", s.purpose === "any" ? "Any" : cap(USE_WORDS[s.purpose] || ""), "Set by the team"],
-        ...(type ? [["Climate type", `Closest to PAGASA ${type.name}`, "Estimated from this site's rainfall pattern, not PAGASA's map"]] : [])
-      ], [0.2, 0.28, 0.52]);
+    conditionSections(doc, s, r, "the team");
+    whenSection(doc, r);
+    nurserySection(doc, nurseries);
+    plantedSection(doc, site, plantings, checks, "the team");
+    aboutSection(doc);
+    return doc.finish();
+  }
 
-      doc.h2("Recommended native trees");
-      const ranked = rank(s).filter(x => x.fit >= 45).slice(0, 10);
-      if (ranked.length) {
-        doc.table(["Tree", "Scientific name", "Status", "Mature height", "Growth", "Fit"],
-          ranked.map(x => [x.sp.name, x.sp.sci, x.sp.status ? `${x.sp.native}, ${x.sp.status}` : x.sp.native, x.sp.height, x.sp.growth, `${x.fit}%`]),
-          [0.2, 0.28, 0.17, 0.15, 0.11, 0.09]);
-        doc.para("Fit compares this site with general guidance for each tree. Status codes follow the species list: CR critically endangered, EN endangered, VU vulnerable, NT near threatened.", { size: 8, color: SOFT });
-      } else {
-        doc.para("No tree in RootRite's list fits these conditions well. Ask the local CENRO what grows nearby.");
-      }
+  /* ---------- A person's own site report and planting plan ---------- */
+
+  async function buildMine({ owner, site, plan, plantings = [], checks = [] }) {
+    await loadLibrary();
+    const s = site.site || {}, r = s.readings || {};
+    const [logo, map, nurseries] = await Promise.all([smallLogo().catch(() => null), mapImage(site.lat, site.lon), nearbyNurseries(site.lat, site.lon)]);
+    const doc = makeDoc(`Prepared for ${owner} on ${today()}. Estimates for planning; check with the local CENRO.`);
+    doc.header(`Planting plan: ${site.name}`, `${owner}  |  ${today()}`, logo);
+
+    const count = plan.count;
+    doc.table(null, [
+      ["Prepared for", owner],
+      ["Location", site.location || s.location || "Not named"],
+      ["Coordinates", `${site.lat.toFixed(5)}, ${site.lon.toFixed(5)}`],
+      ...(count.total ? [["Seedlings", `${fmt(count.buy)} to buy: ${fmt(count.total)} to plant, ${fmt(count.spare)} spare`]] : [])
+    ], [0.24, 0.76]);
+    doc.gap(10);
+    if (map) doc.image(map, INNER, INNER * 400 / 998, "Site location. Map data (c) OpenStreetMap contributors.");
+
+    doc.h2("Your planting plan");
+    if (count.total) {
+      doc.table(["Tree", "Scientific name", "To plant", "To buy"],
+        count.rows.filter(x => x.plant > 0).map(x => [x.sp.name, x.sp.sci, fmt(x.plant), fmt(x.buy)]), [0.32, 0.4, 0.14, 0.14]);
+      doc.para(`Spacing: ${plan.spacing} m between trees. Spare seedlings replace early losses.${count.cost != null ? ` Rough cost of seedlings: PHP ${fmt(count.cost)}, at the price entered.` : ""}`, { size: 9, color: SOFT });
+    } else {
+      doc.para(`Chosen trees: ${count.rows.map(x => x.sp.name).join(", ")}. Land size not entered yet, so there is no seedling count. Spacing: ${plan.spacing} m.`);
     }
-
-    if (r.monthly?.length === 12) {
-      const cal = PlantCal.calendar(r.monthly);
-      doc.h2("When to plant");
-      doc.para(`Best months: ${PlantCal.monthRange(cal.best)}.`, { bold: true, size: 11 });
-      doc.para(cal.noWindow ? "No stretch of the year here suits seedlings on rain alone, so plan to water or shelter them."
-        : cal.seasonal ? `The rains usually settle in by ${PlantCal.MONTHS[cal.start]}. Seedlings need time to root before any dry spell, so RootRite looks for about three wet months in a row.`
-        : "There is no dry season here, so planting is possible most of the year. These months are safest, as the rain picks up again.");
-      doc.table(PlantCal.MONTHS.map(m => m.slice(0, 3)),
-        [cal.monthly.map(v => `${fmt(Math.round(v))} mm`), cal.status.map(x => SHORT_STATUS[x])],
-        Array(12).fill(1 / 12), { size: 7, pad: 3 });
-      doc.para(`Average rainfall each month, ${r.years}. ERA5 records, via Open-Meteo.`, { size: 8, color: SOFT });
+    if (plan.plan) {
+      doc.h2("Month by month", 150);
+      doc.table(["When", "What to do"], plan.plan.map(m => [m.when, m.items.map(i => `${i.title}: ${i.detail}`).join("\n")]), [0.2, 0.8]);
     }
+    doc.h2("Caring for your trees", 130);
+    doc.table(["Tree", "Planting and care"], count.rows.map(x => [x.sp.name, `${x.sp.plant} ${x.sp.care}`]), [0.2, 0.8]);
 
-    if (nurseries.length) {
-      doc.h2("Where to ask for seedlings");
-      doc.table(["Place", "Type", "Distance", "Phone"],
-        nurseries.map(n => [n.name, n.type, `${n.km < 1 ? "Under 1" : fmt(Math.round(n.km))} km`, n.phone || "-"]), [0.4, 0.3, 0.12, 0.18]);
-      doc.para("Straight-line distance. Stock is not confirmed, so call before you travel.", { size: 8, color: SOFT });
-    }
-
-    if (plantings.length) {
-      doc.h2("Planted so far");
-      const summary = Impact.summarise({ sites: [site], plantings, checks });
-      doc.table(["Tree", "Planted on", "Trees", "Last check", "Alive", "Survival"],
-        plantings.map(p => {
-          const c = checks.filter(x => x.planting_id === p.id).sort((a, b) => b.checked_on.localeCompare(a.checked_on))[0];
-          const sp = SPECIES.find(x => x.id === p.species_id);
-          return [sp?.name || p.species_id, longDate(p.planted_on), fmt(p.count), c ? longDate(c.checked_on) : "Not yet", c ? fmt(c.alive) : "-", c ? `${Math.round(c.alive / p.count * 100)}%` : "-"];
-        }), [0.28, 0.17, 0.11, 0.17, 0.12, 0.15]);
-      doc.para(`${fmt(summary.planted)} trees logged by the team. Survival covers ${fmt(summary.checkedPlanted)} trees with a survival check.`, { size: 8, color: SOFT });
-    }
-
-    doc.h2("About this report");
-    doc.bullets([
-      "This report supports planning and proposals. It is not a DENR assessment or a permit, and it does not replace a site visit.",
-      "Check with the local CENRO which clearances and permits apply before planting, especially on public land, in protected areas or in mangroves.",
-      "Site conditions are estimates from open data: Copernicus terrain and ERA5 rainfall via Open-Meteo, SoilGrids (ISRIC) and OpenStreetMap. Soil and drainage are the least certain, so check them on the ground.",
-      "Tree heights, care notes and fit scores are general guidance, not survey data."
-    ]);
+    conditionSections(doc, s, r, "the owner");
+    whenSection(doc, r);
+    nurserySection(doc, nurseries);
+    plantedSection(doc, site, plantings, checks, "the owner");
+    aboutSection(doc);
     return doc.finish();
   }
 
@@ -331,6 +391,7 @@ const Reports = (() => {
 
   const site = async ctx => (await buildSite(ctx)).save(`rootrite-site-report-${fileName(ctx.site.name)}.pdf`);
   const impact = async ctx => (await buildImpact(ctx)).save(`rootrite-impact-report-${fileName(ctx.org.name)}.pdf`);
+  const mine = async ctx => (await buildMine(ctx)).save(`rootrite-planting-plan-${fileName(ctx.site.name)}.pdf`);
 
-  return { site, impact, buildSite, buildImpact };
+  return { site, impact, mine, buildSite, buildImpact, buildMine, nearbyNurseries };
 })();

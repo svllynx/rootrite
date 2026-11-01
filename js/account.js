@@ -22,13 +22,14 @@ async function rrCurrentAccount() {
   if (!client) return null;
   const { data: { session } } = await client.auth.getSession();
   if (!session) return null;
-  const { data: profile, error } = await client.from("profiles").select("full_name, plan, premium_since").eq("id", session.user.id).single();
+  const { data: profile, error } = await client.from("profiles").select("full_name, plan, premium_since, free_site_used").eq("id", session.user.id).single();
   if (error) console.warn("RootRite: could not load the profile", error.message);
   return {
     user: session.user,
     name: profile?.full_name || session.user.user_metadata?.full_name || session.user.email,
     plan: profile?.plan === "premium" ? "premium" : "free",
-    premiumSince: profile?.premium_since || null
+    premiumSince: profile?.premium_since || null,
+    freeSiteUsed: !!profile?.free_site_used
   };
 }
 
