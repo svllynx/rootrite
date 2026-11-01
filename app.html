@@ -25,6 +25,7 @@
   </a>
   <nav class="app-nav" aria-label="App">
     <a href="#match">Site matcher</a>
+    <a href="#planting">When to plant</a>
     <a href="#nurseries">Nurseries</a>
     <a href="#compare">Compare</a>
     <a href="#scan">AI Site Scan</a>
@@ -159,6 +160,15 @@
         <div class="results" id="results" aria-live="polite"></div>
       </div>
     </div>
+  </section>
+
+  <!-- When to plant: the calendar for the site's own rainfall -->
+  <section class="app-section planting" id="planting" aria-labelledby="planting-title">
+    <div class="app-section-head">
+      <h2 id="planting-title" class="h2">When to plant</h2>
+      <p class="app-section-lead">Seedlings need time to root before any dry spell, so RootRite looks for about three wet months in a row, using ten years of rain records at your pin.</p>
+    </div>
+    <div class="cal" id="planting-body" aria-live="polite"></div>
   </section>
 
   <!-- Where to get seedlings: RootRite's nursery directory and OpenStreetMap -->
@@ -300,6 +310,7 @@
 <script src="js/species.js"></script>
 <script src="js/tree-photos.js"></script>
 <script src="js/sitemap.js"></script>
+<script src="js/calendar.js"></script>
 <script src="js/nurseries.js"></script>
 <script src="js/dashboard.js"></script>
 </body>

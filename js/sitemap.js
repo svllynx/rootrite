@@ -7,7 +7,7 @@
 const SiteMap = (() => {
   const PH = { center: [12.3, 122.6], zoom: 5 };
   const TIMEOUT = 20000;
-  let map, marker, pin = null, readings = null, autoLocation = "", seq = 0;
+  let map, marker, pin = null, readings = null, autoLocation = "", seq = 0, reading = false;
 
   const $ = id => document.getElementById(id);
   const form = () => $("site");
@@ -38,7 +38,13 @@ const SiteMap = (() => {
       `&start_date=${first}-01-01&end_date=${last}-12-31&daily=precipitation_sum&timezone=Asia%2FManila`);
     const days = data.daily.precipitation_sum.filter(v => v != null);
     if (days.length < 3000) throw new Error("Too little rainfall data");
-    return { rain: days.reduce((a, b) => a + b, 0) / (days.length / 365.25), years: `${first}–${last}` };
+    const monthly = Array(12).fill(0);
+    data.daily.time.forEach((t, i) => { monthly[+t.slice(5, 7) - 1] += data.daily.precipitation_sum[i] || 0; });
+    return {
+      rain: days.reduce((a, b) => a + b, 0) / (days.length / 365.25),
+      monthly: monthly.map(v => Math.round(v / (last - first + 1))),
+      years: `${first}–${last}`
+    };
   }
 
   // One SoilGrids value (g/kg, or cm³/dm³ for gravel) from ISRIC's map server; null where there is no soil.
@@ -179,6 +185,8 @@ const SiteMap = (() => {
 
     const id = ++seq;
     const r = { lat, lon };
+    readings = null; reading = true;
+    PlantCal.paint();
     const pending = new Set(["elev", "rain", "soil", "slope", "moist"]);
     $("pin-help").textContent = "Reading your site…";
     showReadings(r, pending);
@@ -186,7 +194,7 @@ const SiteMap = (() => {
 
     const terrain = readTerrain(lat, lon).then(t => { r.elev = t.elev; r.slopeDeg = t.slopeDeg; r.slope = slopeClass(t.slopeDeg); })
       .catch(() => {}).finally(() => settle(["elev", "slope"]));
-    const rain = readRain(lat, lon).then(x => { r.rain = x.rain; r.years = x.years; })
+    const rain = readRain(lat, lon).then(x => { r.rain = x.rain; r.monthly = x.monthly; r.years = x.years; })
       .catch(() => {}).finally(() => settle(["rain"]));
     const soil = readSoil(lat, lon).then(t => { if (t) { r.texture = t; r.soil = soilClass(t); } else r.noSoil = true; })
       .catch(() => {}).finally(() => settle(["soil"]));
@@ -195,7 +203,7 @@ const SiteMap = (() => {
     await Promise.all([terrain, rain, soil, place]);
     if (id !== seq) return;
     settle(["moist"]);
-    readings = r;
+    readings = r; reading = false;
     apply(r);
     const got = ["elev", "rain", "soil", "slope"].filter(k => r[k] != null).length;
     $("pin-help").textContent = got === 4
@@ -241,6 +249,7 @@ const SiteMap = (() => {
   /* ---------- Setup ---------- */
 
   function init(saved) {
+    if (saved?.pin) { pin = saved.pin; readings = saved.readings || null; autoLocation = readings?.place || ""; }
     if (!window.L || map) return;
     const street = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
       maxZoom: 19, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
@@ -255,12 +264,19 @@ const SiteMap = (() => {
     map.on("blur", () => map.scrollWheelZoom.disable());
 
     if (saved?.pin) {
-      pin = saved.pin; readings = saved.readings || null; autoLocation = readings?.place || "";
       marker = L.marker([pin.lat, pin.lon], { draggable: true, icon: pinIcon(), keyboard: true, title: "Your planting site" }).addTo(map);
       marker.on("dragend", () => { const p = marker.getLatLng(); drop(p.lat, p.lng); });
       map.setView([pin.lat, pin.lon], 14);
       if (readings) showReadings(readings, new Set());
       $("pin-help").textContent = "Your last pin. Drag it or tap elsewhere to read another spot.";
+      if (!readings?.monthly) {
+        reading = true;
+        const id = seq;
+        readRain(pin.lat, pin.lon)
+          .then(x => { if (id === seq) readings = { ...readings, ...x, rain: readings?.rain ?? x.rain }; })
+          .catch(() => {})
+          .finally(() => { if (id === seq) { reading = false; render(false); } });
+      }
     }
 
     $("pin-search").addEventListener("click", search);
@@ -275,5 +291,5 @@ const SiteMap = (() => {
     requestAnimationFrame(() => map.invalidateSize());
   }
 
-  return { init, setRain, snapshot: () => (pin ? { pin, readings } : {}) };
+  return { init, setRain, isReading: () => reading, snapshot: () => (pin ? { pin, readings } : {}) };
 })();

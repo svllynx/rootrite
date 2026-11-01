@@ -427,3 +427,51 @@
 @media (max-width: 760px) {
   .tree-thumb { width: 48px; height: 48px; }
 }
+
+/* ---------- When to plant ---------- */
+.cal { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: 56px; align-items: start; }
+.cal-empty { grid-column: 1 / -1; padding: 28px 24px; font-size: 18px; color: var(--soft); background: var(--sage); }
+.cal-label { font-size: 16px; color: var(--soft); }
+.cal-months { margin-top: 6px; font: 600 var(--t-h2)/1.05 var(--display); letter-spacing: -0.04em; color: var(--green); }
+.cal-count { margin-top: 12px; font-size: 18px; max-width: 46ch; }
+.cal-tidal { margin-top: 16px; padding: 14px 16px; font-size: 16px; background: var(--sage); }
+.cal-steps { list-style: none; margin: 28px 0 0; padding: 0; display: grid; gap: 4px; }
+.cal-steps li { display: grid; grid-template-columns: 140px minmax(0, 1fr); gap: 16px; padding: 14px 16px; background: var(--sage); }
+.cal-steps li:nth-child(even) { background: var(--sage-2); }
+.cal-step-when { font: 600 16px/1.3 var(--display); color: var(--green); }
+.cal-steps h4 { margin: 0; font: 600 18px/1.25 var(--display); letter-spacing: -0.01em; }
+.cal-steps li p:not(.cal-step-when) { margin-top: 2px; font-size: 16px; line-height: 1.45; }
+.cal-steps a { color: var(--green); text-underline-offset: 3px; }
+.cal-type { margin-top: 16px; padding: 16px; background: var(--paper); border-left: 4px solid var(--sky); }
+.cal-type h3 { margin: 0; font: 600 18px/1.25 var(--display); letter-spacing: -0.01em; }
+.cal-type p { margin-top: 4px; font-size: 16px; line-height: 1.45; }
+.cal-type .cal-type-note { margin-top: 8px; font-size: 14px; color: var(--soft); }
+.cal-table { width: 100%; border-collapse: collapse; font-size: 16px; }
+.cal-table caption { text-align: left; padding-bottom: 12px; font-size: 16px; color: var(--soft); }
+.cal-table thead th { padding: 0 8px 8px; font: 400 14px/1.2 var(--text); color: var(--soft); text-align: left; }
+.cal-table td, .cal-table tbody th { padding: 6px 8px; text-align: left; font-weight: 400; }
+.cal-table tbody tr:hover { background: var(--sage); }
+.cal-table .is-now { background: var(--sage); }
+.cal-table tbody th { width: 92px; white-space: nowrap; }
+.cal-table abbr { text-decoration: none; }
+.cal-now { margin-left: 6px; padding: 1px 6px; font-size: 12px; background: var(--green); color: var(--on-dark); }
+.cal-bar-cell { width: 100%; min-width: 60px; }
+.cal-bar { display: block; height: 18px; border-radius: 0 4px 4px 0; background: #B9BFAE; }
+.is-best .cal-bar { background: var(--green); }
+.cal-mm { white-space: nowrap; text-align: right; font-size: 14px; color: var(--soft); font-variant-numeric: tabular-nums; }
+.cal-status { white-space: nowrap; color: var(--soft); }
+.is-best .cal-status { font-weight: 600; color: var(--green); }
+.is-best th { font-weight: 600; }
+.is-heavy .cal-status { color: var(--bark); }
+.tag [data-plantwhen] .link-btn { color: var(--on-dark); }
+.tag [data-plantwhen] .link-btn:hover { color: var(--sky); }
+.sheet-dl [data-plantwhen] .link-btn { margin-left: 4px; font-size: 16px; }
+@media (max-width: 1024px) {
+  .cal { grid-template-columns: minmax(0, 1fr); gap: 32px; }
+}
+@media (max-width: 760px) {
+  .cal-steps li { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+  .cal-table td, .cal-table tbody th { padding: 6px 4px; }
+  .cal-table tbody th { width: 72px; }
+  .cal-now { display: block; width: max-content; margin: 2px 0 0; }
+}

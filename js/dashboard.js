@@ -26,9 +26,10 @@ async function boot() {
   $("user-name").textContent = account.name;
   applyPlan(account.plan);
   const saved = restoreSite();
-  render(true);
   document.body.classList.remove("is-checking");
+  // the pin must be back before the first render, because rendering saves the site
   SiteMap.init(saved);
+  render(true);
   Nurseries.init();
 
   rrClient().auth.onAuthStateChange(event => {
@@ -119,6 +120,7 @@ function sheetBody(sp) {
         <div><dt>Water</dt><dd>${esc(sp.water)}</dd></div>
         <div><dt>Basic care</dt><dd>${esc(sp.care)}</dd></div>
         <div><dt>Before you plant</dt><dd>${esc(sp.plant)}</dd></div>
+        <div><dt>When to plant</dt><dd data-plantwhen="${sp.id}"></dd></div>
         <div><dt>Where to get seedlings</dt><dd data-seedlings="${sp.id}"></dd></div>
       </dl></div>
     </div>`;
@@ -145,6 +147,7 @@ function render(animate) {
   $("temp").textContent = tempAt(s.elev);
   $("moist-field").hidden = s.soil === "tidal";
   saveSite(s);
+  PlantCal.paint();
 
   const all = rank(s);
   const viable = all.filter(r => r.fit >= 45);
@@ -219,6 +222,7 @@ function render(animate) {
   state.compare = state.compare.filter(id => shown.some(r => r.sp.id === id));
   renderCompare();
   if (typeof Nurseries !== "undefined") Nurseries.update();
+  PlantCal.fillSheets();
 }
 
 /* ---------- Comparison (Premium) ---------- */
