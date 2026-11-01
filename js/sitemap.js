@@ -224,8 +224,13 @@ const SiteMap = (() => {
     hits.hidden = false;
     hits.innerHTML = `<li class="pin-hits-note">Searching…</li>`;
     try {
-      const d = await getJSON(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=6&language=en&countryCode=PH`);
-      const list = d.results || [];
+      // the service knows single place names, but people type "Tublay, Benguet" or "Barangay Daclan"
+      const [first, ...rest] = q.split(",").map(x => x.trim()).filter(Boolean);
+      const name = first.replace(/^(barangay|brgy\.?|bgy\.?)\s+/i, "") || first;
+      const d = await getJSON(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(name)}&count=6&language=en&countryCode=PH`);
+      const area = rest.join(" ").toLowerCase();
+      const inArea = p => area && [p.admin1, p.admin2, p.admin3].some(a => a && a.toLowerCase().includes(area));
+      const list = (d.results || []).slice().sort((a, b) => inArea(b) - inArea(a));
       hits.innerHTML = list.length
         ? list.map(p => `<li><button type="button" data-lat="${p.latitude}" data-lon="${p.longitude}">${esc(p.name)}<span>${esc([p.admin3 !== p.name ? p.admin3 : "", (p.admin2 || "").replace(/^Province of /, ""), p.admin1].filter(Boolean).join(", "))}</span></button></li>`).join("")
         : `<li class="pin-hits-note">No place called "${esc(q)}" found. Try the town or province name.</li>`;
