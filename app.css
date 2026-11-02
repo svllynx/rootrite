@@ -995,3 +995,5 @@
 @media (max-width: 1180px) {
   .app-section { scroll-margin-top: 48px; }
 }
+
+.pp-banner-differs { background: var(--bark); color: var(--on-dark); }

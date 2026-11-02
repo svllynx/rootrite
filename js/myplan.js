@@ -26,7 +26,8 @@ const MyPlan = (() => {
 
   function draft(src) {
     const key = src.row?.id || "current", p = src.row?.plan || {};
-    return my.drafts[key] ||= { trees: p.trees || [], amount: p.amount ?? "", unit: p.unit || "sqm", spacing: p.spacing ?? null, price: p.price ?? "" };
+    // auto: nobody has chosen trees yet, so the plan follows the site's best match
+    return my.drafts[key] ||= { trees: p.trees || [], auto: !p.trees?.length, amount: p.amount ?? "", unit: p.unit || "sqm", spacing: p.spacing ?? null, price: p.price ?? "" };
   }
 
   // The trees to choose from, and the ones chosen. Only trees that can grow on the site stay chosen.
@@ -34,6 +35,7 @@ const MyPlan = (() => {
     const fits = rank(src.site).filter(r => r.fit >= 45);
     const offered = fits.slice(0, isPremium() ? 8 : FREE_LIMIT);
     const scored = id => { const sp = speciesById(id); return sp ? score(sp, src.site) : null; };
+    if (d.auto) d.trees = offered.length ? [offered[0].sp.id] : [];
     d.trees = d.trees.filter(id => scored(id) && (isPremium() || offered.some(r => r.sp.id === id))).slice(0, Planner.MAX_TREES);
     if (!d.trees.length && offered.length) d.trees = [offered[0].sp.id];
     const extra = d.trees.filter(id => !offered.some(r => r.sp.id === id)).map(scored);
@@ -117,17 +119,43 @@ const MyPlan = (() => {
     paintResult();
   }
 
+  // A saved plan keeps the site it was made for. Is that still the site described above?
+  const CONDITIONS = ["elev", "soil", "moist", "rain", "slope", "sun", "space", "purpose"];
+  function differsFromAbove(row) {
+    const pin = SiteMap.snapshot().pin, now = readSite(), saved = row.site || {};
+    if (!pin || Math.abs(pin.lat - row.lat) > 1e-4 || Math.abs(pin.lon - row.lon) > 1e-4) return true;
+    return CONDITIONS.some(k => !(k === "moist" && now.soil === "tidal") && String(now[k]) !== String(saved[k]));
+  }
+
+  // For the results above: is a Free account's only plan for some other site?
+  const siteDiffers = () => !isPremium() && my.loaded && !!freeSite() && differsFromAbove(freeSite());
+
+  function siteWords(s) {
+    const space = { S: "house lot", M: "large yard", L: "open land" }[s.space];
+    const ground = s.soil === "tidal" ? "tidal mud" : `${fmt(s.elev)} m, ${SOIL_WORDS[s.soil]} soil, ${["flat", "gently sloping", "steep"][s.slope]}`;
+    const purpose = s.purpose && s.purpose !== "any" ? `, for ${USE_WORDS[s.purpose]}` : "";
+    return `${ground}, ${space}, about ${fmt(s.rain)} mm of rain${purpose}`;
+  }
+
   function banner(src) {
-    if (src.row && !isPremium()) {
-      const pin = SiteMap.snapshot().pin;
-      const elsewhere = pin && (Math.abs(pin.lat - src.row.lat) > 1e-4 || Math.abs(pin.lon - src.row.lon) > 1e-4);
-      return `<div class="pp-banner">
-        <p><b>This is your free plan, for ${esc(src.row.name)}.</b> ${elsewhere ? "The pin on your map is a different spot. " : ""}Premium plans every site you have, and adds reminders and a tree diary.</p>
-        <button class="btn btn-ink btn-sm" type="button" data-upgrade data-upgrade-from="plan">${LOCK} Plan every site</button>
-      </div>`;
+    if (!src.row) return "";
+    const differs = differsFromAbove(src.row), words = esc(siteWords(src.row.site));
+    const note = "The trees in your results and in Compare are for the site described above, so they can be different.";
+    if (!isPremium()) {
+      return differs
+        ? `<div class="pp-banner pp-banner-differs">
+            <p><b>This plan is for ${esc(src.row.name)}, not the site above.</b> ${words}. ${note} Your free plan stays with this one site.</p>
+            <button class="btn btn-sky btn-sm" type="button" data-upgrade data-upgrade-from="plan" data-plan-map>${LOCK} Plan the site above</button>
+          </div>`
+        : `<div class="pp-banner">
+            <p><b>This is your free plan, for ${esc(src.row.name)}.</b> ${words}. Premium plans every site you have, and adds reminders and a tree diary.</p>
+            <button class="btn btn-ink btn-sm" type="button" data-upgrade data-upgrade-from="plan">${LOCK} Plan every site</button>
+          </div>`;
     }
-    if (src.row) return `<div class="pp-banner pp-banner-quiet"><p>Viewing <b>${esc(src.row.name)}</b>, from My sites.</p><button class="link-btn" type="button" data-plan-current>Back to the site above</button></div>`;
-    return "";
+    return `<div class="pp-banner ${differs ? "pp-banner-differs" : "pp-banner-quiet"}">
+      <p>Viewing <b>${esc(src.row.name)}</b>, from My sites. ${words}.${differs ? ` ${note}` : ""}</p>
+      <button class="${differs ? "btn btn-sky btn-sm" : "link-btn"}" type="button" data-plan-current>Back to the site above</button>
+    </div>`;
   }
 
   // The dots of the planting map: one per tree, colored by species. A very large plan shows a corner of itself.
@@ -204,6 +232,7 @@ const MyPlan = (() => {
       const picked = [...f.querySelectorAll('input[name="tree"]:checked')].map(x => x.value);
       if (picked.length > Planner.MAX_TREES) { e.target.checked = false; toast(`Choose up to ${Planner.MAX_TREES} trees. Untick one first.`); return; }
       if (!picked.length) { e.target.checked = true; toast("A plan needs at least one tree."); return; }
+      d.auto = false;
       // keep the order they were chosen in, so the spacing follows the first tree
       d.trees = [...d.trees.filter(id => picked.includes(id)), ...picked.filter(id => !d.trees.includes(id))];
     } else if (e.target.name === "spacing") {
@@ -365,7 +394,7 @@ const MyPlan = (() => {
     }).select().single();
     if (error) throw error;
     my.sites.push(data);
-    my.drafts[data.id] = { ...d };
+    my.drafts[data.id] = { ...d, auto: false };
     return data;
   }
 
@@ -381,7 +410,7 @@ const MyPlan = (() => {
       const row = await insertSite(src, name);
       state.account.freeSiteUsed = true;
       my.viewing = row.id;
-      paint();
+      render(false);
       paintSites();
       toast("Your free plan is ready. Enter your land size to see how many seedlings to buy.");
     } catch (err) {
@@ -631,6 +660,7 @@ const MyPlan = (() => {
   function onClick(e) {
     const t = e.target.closest("button");
     if (!t) return;
+    if (t.hasAttribute("data-upgrade")) my.wantMapSite = t.hasAttribute("data-plan-map");
     if (t.hasAttribute("data-plan-current")) { my.viewing = null; paint(); paintSites(); return; }
     if (t.hasAttribute("data-plan-pdf")) return withButton(t, "Making your PDF…", () => Reports.mine(reportContext(source())));
     if (t.hasAttribute("data-plan-copy")) return copyList();
@@ -658,7 +688,7 @@ const MyPlan = (() => {
     my.plantings = plantings.data || [];
     my.checks = checks.data || [];
     my.loaded = true;
-    paint();
+    render(false); // the results above depend on whether a Free account's plan is for this site
     paintSites();
   }
 
@@ -686,6 +716,8 @@ const MyPlan = (() => {
   // After a plan change, or a Free account going Premium: show the site they were working on.
   function afterPlanChange() {
     if (!isPremium() && my.viewing !== freeSite()?.id) my.viewing = null;
+    if (isPremium() && my.wantMapSite) my.viewing = null; // they upgraded to plan the site on the map
+    my.wantMapSite = false;
     paint();
     paintSites();
   }
@@ -695,6 +727,8 @@ const MyPlan = (() => {
     if (!SiteMap.snapshot().pin) { toast("Drop a pin on the map first, so the plan can use your site's rainfall."); return; }
     my.viewing = null;
     const src = source(), d = draft(src);
+    treeChoices(src, d);
+    d.auto = false;
     if (!d.trees.includes(id)) {
       if (d.trees.length >= Planner.MAX_TREES) { toast(`Your plan already has ${Planner.MAX_TREES} trees. Untick one first.`); $("myplan").scrollIntoView(); return; }
       d.trees.push(id);
@@ -705,5 +739,5 @@ const MyPlan = (() => {
     toast(`${nameOf(id)} is in your planting plan.`);
   }
 
-  return { init, paint, paintSites, afterPlanChange, addTree, my };
+  return { init, paint, paintSites, afterPlanChange, addTree, siteDiffers, my };
 })();

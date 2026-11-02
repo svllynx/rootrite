@@ -208,7 +208,9 @@ function render(animate) {
         ${isPremium() ? compareToggle(best) : ""}
         ${isPremium()
           ? `<button class="btn btn-sky btn-sm" type="button" data-plan-add="${best.sp.id}">Plan ${esc(best.sp.name)}: how many to buy</button>`
-          : `<a class="btn btn-sky btn-sm" href="#myplan">Plan ${esc(best.sp.name)}: how many to buy</a>`}
+          : MyPlan.siteDiffers()
+            ? `<button class="btn btn-sky btn-sm" type="button" data-upgrade data-upgrade-from="plan" data-plan-map>Plan ${esc(best.sp.name)} with Premium</button>`
+            : `<a class="btn btn-sky btn-sm" href="#myplan">Plan ${esc(best.sp.name)}: how many to buy</a>`}
       </div>
     </article>`;
 
