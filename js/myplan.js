@@ -71,33 +71,47 @@ const MyPlan = (() => {
     if (!box || !state.account) return;
     const src = source();
     if (!my.loaded) { box.innerHTML = `<p class="pp-empty">Loading your plan…</p>`; return; }
-    if (!src.pin) { box.innerHTML = `<p class="pp-empty">Drop a pin on the map above, and your planting plan starts here.</p>`; return; }
+    if (!src.pin) { box.innerHTML = startHere(); return; }
     if (!isPremium() && !src.row) { box.innerHTML = freeUsed() ? usedUp() : freeOffer(src); bindClaim(); return; }
     const d = draft(src), choices = treeChoices(src, d);
     if (!choices.length) { box.innerHTML = `<p class="pp-empty">Nothing in our list fits ${src.row ? "this site" : "these conditions"} well, so there's no plan to make. Ask your local CENRO what grows nearby.</p>`; return; }
     box.innerHTML = `
       ${banner(src)}
-      <form class="pp-form" id="pp-form" novalidate>
-        <fieldset class="pp-trees">
-          <legend>Which trees? Choose up to ${Planner.MAX_TREES}. Mixing native trees is usually healthier than planting one.</legend>
-          <div class="pp-chips">${choices.map(r => `
-            <label class="pp-chip"><input type="checkbox" name="tree" value="${r.sp.id}"${d.trees.includes(r.sp.id) ? " checked" : ""}><span>${esc(r.sp.name)}<small>${isPremium() ? `${r.fit}%` : matchWord(r.fit)}</small></span></label>`).join("")}
+      <div class="pp-board">
+        <form class="pp-form" id="pp-form" novalidate>
+          <fieldset class="pp-trees">
+            <legend><span class="pp-no">1</span> Choose up to ${Planner.MAX_TREES} trees</legend>
+            <p class="pp-hint">Mixing native trees is usually healthier than planting one.</p>
+            <div class="pp-chips">${choices.map(r => `
+              <label class="pp-chip"><input type="checkbox" name="tree" value="${r.sp.id}"${d.trees.includes(r.sp.id) ? " checked" : ""}><span>
+                ${TREE_PHOTOS[r.sp.id] ? `<img src="${TREE_PHOTOS[r.sp.id].thumb}" alt="" width="160" height="160" loading="lazy" decoding="async">` : ""}
+                <span class="pp-chip-text"><b>${esc(r.sp.name)}</b><small>${isPremium() ? `${r.fit}% fit` : matchWord(r.fit)}</small></span>
+              </span></label>`).join("")}
+            </div>
+          </fieldset>
+          <div class="pp-group">
+            <p class="pp-group-title"><span class="pp-no">2</span> Tell us about your land</p>
+            <div class="pp-fields">
+              <div class="input"><label for="pp-amount">How much land?</label><input id="pp-amount" name="amount" type="number" min="0" step="any" inputmode="decimal" placeholder="500" value="${esc(d.amount)}"></div>
+              <div class="input"><label for="pp-unit">Measured in</label>
+                <select id="pp-unit" name="unit">
+                  <option value="sqm"${d.unit === "sqm" ? " selected" : ""}>Square meters</option>
+                  <option value="ha"${d.unit === "ha" ? " selected" : ""}>Hectares</option>
+                  <option value="trees"${d.unit === "trees" ? " selected" : ""}>Number of trees</option>
+                </select></div>
+            </div>
           </div>
-        </fieldset>
-        <div class="pp-fields">
-          <div class="input"><label for="pp-amount">How much land?</label><input id="pp-amount" name="amount" type="number" min="0" step="any" inputmode="decimal" placeholder="500" value="${esc(d.amount)}"></div>
-          <div class="input"><label for="pp-unit">Measured in</label>
-            <select id="pp-unit" name="unit">
-              <option value="sqm"${d.unit === "sqm" ? " selected" : ""}>Square meters</option>
-              <option value="ha"${d.unit === "ha" ? " selected" : ""}>Hectares</option>
-              <option value="trees"${d.unit === "trees" ? " selected" : ""}>Number of trees</option>
-            </select></div>
-          <div class="input"><label for="pp-spacing">Space between trees</label>
-            <select id="pp-spacing" name="spacing"></select></div>
-          <div class="input"><label for="pp-price">Price per seedling (optional)</label><input id="pp-price" name="price" type="number" min="0" step="any" inputmode="decimal" placeholder="Ask your nursery" value="${esc(d.price)}"></div>
-        </div>
-      </form>
-      <div id="pp-result" aria-live="polite"></div>`;
+          <div class="pp-group">
+            <p class="pp-group-title"><span class="pp-no">3</span> Fine-tune it</p>
+            <div class="pp-fields">
+              <div class="input"><label for="pp-spacing">Space between trees</label><select id="pp-spacing" name="spacing"></select></div>
+              <div class="input"><label for="pp-price">Price per seedling (optional)</label><input id="pp-price" name="price" type="number" min="0" step="any" inputmode="decimal" placeholder="Ask your nursery" value="${esc(d.price)}"></div>
+            </div>
+          </div>
+        </form>
+        <div class="pp-summary" id="pp-summary" aria-live="polite"></div>
+      </div>
+      <div id="pp-result"></div>`;
     $("pp-form").addEventListener("input", onFormChange);
     $("pp-form").addEventListener("submit", e => e.preventDefault());
     paintResult();
@@ -116,24 +130,56 @@ const MyPlan = (() => {
     return "";
   }
 
+  // The dots of the planting map: one per tree, colored by species. A very large plan shows a corner of itself.
+  function plot(layout, label) {
+    const pitch = 200 / Math.max(layout.cols, layout.lines);
+    const radius = Math.min(pitch * 0.34, 7);
+    const left = (200 - pitch * (layout.cols - 1)) / 2, top = (200 - pitch * (layout.lines - 1)) / 2;
+    const dots = layout.points.map((tree, i) => `<circle class="pp-dot-${tree}" cx="${(left + (i % layout.cols) * pitch).toFixed(1)}" cy="${(top + Math.floor(i / layout.cols) * pitch).toFixed(1)}" r="${radius.toFixed(1)}"/>`).join("");
+    return `<svg class="pp-plot-map" viewBox="0 0 200 200" role="img" aria-label="${esc(label)}">${dots}</svg>`;
+  }
+
+  const SAMPLE_PLOT = { cols: 7, lines: 7, points: Array.from({ length: 49 }, () => 0) };
+
+  function startHere() {
+    return `
+      <div class="pp-start">
+        <figure class="pp-start-plot">${plot(SAMPLE_PLOT, "A sample planting map")}</figure>
+        <div>
+          <h3>Start with a pin</h3>
+          <p>Drop a pin on the map above, and your planting plan starts here.</p>
+          <ol class="pp-start-steps"><li>Pin your site</li><li>Choose your trees</li><li>See how many to buy</li></ol>
+          <a class="btn btn-ink" href="#match">Go to the map</a>
+        </div>
+      </div>`;
+  }
+
   function freeOffer(src) {
     const top = rank(src.site).filter(r => r.fit >= 45)[0];
     const name = top ? top.sp.name : "your trees";
+    const CHECK = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>`;
     return `
       <div class="pp-offer">
-        <ul class="pp-hidden" aria-hidden="true">
-          <li><span>Seedlings of ${esc(name)} to buy</span><span class="cmp-hidden" style="width:30%"></span></li>
-          <li><span>Rough cost</span><span class="cmp-hidden" style="width:44%"></span></li>
-          <li><span>Care tips for your trees</span><span class="cmp-hidden" style="width:72%"></span></li>
-          <li><span>List for the nursery</span><span class="cmp-hidden" style="width:50%"></span></li>
-          <li><span>PDF report</span><span class="cmp-hidden" style="width:38%"></span></li>
-        </ul>
         <form class="pp-claim" id="pp-claim" novalidate>
           <h3>Your first plan is free</h3>
           <p>Every account gets one planting plan and PDF report, for one site. Use it on the site you'll actually plant, because it can't be moved or given back.</p>
           <div class="input"><label for="pp-claim-name">Name this site</label><input id="pp-claim-name" maxlength="120" value="${esc(src.name || "")}" placeholder="For example, North hillside"></div>
           <button class="btn btn-ink" type="submit">Get my free plan</button>
         </form>
+        <div class="pp-get">
+          <figure class="pp-start-plot">${plot(SAMPLE_PLOT, "A sample planting map")}</figure>
+          <div>
+            <h3>What you'll get</h3>
+            <ul class="pp-get-list">
+              <li>${CHECK} How many ${esc(name)} seedlings to buy</li>
+              <li>${CHECK} A map of how to space them</li>
+              <li>${CHECK} A rough cost, at your nursery's price</li>
+              <li>${CHECK} Care tips for your trees</li>
+              <li>${CHECK} A list to take to the nursery</li>
+              <li>${CHECK} A PDF report</li>
+            </ul>
+          </div>
+        </div>
       </div>`;
   }
 
@@ -187,8 +233,8 @@ const MyPlan = (() => {
   const peso = n => `₱${fmt(n)}`;
 
   function paintResult() {
-    const out = $("pp-result");
-    if (!out) return;
+    const out = $("pp-result"), summary = $("pp-summary");
+    if (!out || !summary) return;
     const src = source(), d = draft(src), w = workOut(src, d);
     const select = $("pp-spacing");
     if (select) {
@@ -196,64 +242,108 @@ const MyPlan = (() => {
     }
     const near = src.pin && isPremium() ? nurseriesNear(src.pin) : { list: [] }; // nursery names are Premium only
     const hasAmount = w.count.total > 0;
+    const rows = w.count.rows.filter(r => r.plant > 0);
     const list = hasAmount ? Planner.shoppingList({
       siteName: src.row?.name || src.name, place: src.readings?.place, rows: w.count.rows, total: w.count.total, buy: w.count.buy,
       spacing: w.spacing, cost: w.count.cost, cal: isPremium() ? w.cal : null, nurseries: near.list || []
     }) : "";
-    const tiles = hasAmount ? `
-      <dl class="pp-tiles">
-        <div><dt>Seedlings to buy</dt><dd>${fmt(w.count.buy)}</dd><dd class="pp-tile-note">${fmt(w.count.total)} to plant, ${fmt(w.count.spare)} spare to replace early losses</dd></div>
-        <div><dt>Rough cost</dt><dd>${w.count.cost != null ? peso(w.count.cost) : "-"}</dd><dd class="pp-tile-note">${w.count.cost != null ? "Seedlings only, at your price" : "Enter a price per seedling to see this"}</dd></div>
-        ${isPremium()
-          ? `<div><dt>Plant in</dt><dd class="pp-tile-months">${w.cal ? PlantCal.monthRange(w.cal.best) : "-"}</dd><dd class="pp-tile-note">${w.cal ? "From ten years of rain records at your pin" : "Rainfall records didn't load for this pin"}</dd></div>`
-          : `<div><dt>Plant in</dt><dd class="pp-tile-months">Premium only</dd><dd class="pp-tile-note">Your best months, from ten years of rain records at your pin</dd></div>`}
-      </dl>
-      ${w.count.rows.length > 1 ? `<table class="pp-split"><thead><tr><th scope="col">Tree</th><th scope="col">To plant</th><th scope="col">To buy</th></tr></thead><tbody>${w.count.rows.map(r => `<tr><th scope="row">${esc(r.sp.name)}</th><td>${fmt(r.plant)}</td><td>${fmt(r.buy)}</td></tr>`).join("")}</tbody></table>` : ""}` : `<p class="pp-prompt">Enter your land size above to see how many seedlings to buy.</p>`;
-    const reminders = isPremium()
-      ? `<button class="btn btn-line btn-sm" type="button" data-plan-reminders${w.plan ? "" : " disabled"}>Add reminders to my calendar</button>`
-      : `<button class="btn btn-line btn-sm" type="button" data-upgrade data-upgrade-from="reminders">${LOCK} Add reminders to my calendar</button>`;
-    out.innerHTML = `
-      ${tiles}
-      ${!isPremium() ? lockedMonths() : w.plan ? `
-        <h3 class="pp-h">Month by month</h3>
-        <ol class="pp-months">${w.plan.map(m => `
-          <li><p class="pp-when">${esc(m.when)}</p><div>${m.items.map(i => `<h4>${esc(i.title)}</h4><p>${esc(i.detail)}</p>`).join("")}</div></li>`).join("")}
-        </ol>` : `<p class="pp-prompt">The month-by-month plan needs your pin's rainfall records. ${src.row ? "" : "Tap your spot on the map again to retry."}</p>`}
-      <h3 class="pp-h">Care for ${w.count.rows.length > 1 ? "these trees" : esc(w.count.rows[0]?.sp.name || "this tree")}</h3>
-      <dl class="pp-care">${w.count.rows.map(r => `<div><dt>${esc(r.sp.name)}</dt><dd>${esc(r.sp.plant)} ${esc(r.sp.care)}</dd></div>`).join("")}</dl>
-      ${hasAmount ? `
-        <h3 class="pp-h">Your list for the nursery</h3>
-        <pre class="pp-list" id="pp-list">${esc(list)}</pre>
-        ${isPremium() ? "" : `<div class="pp-places-locked">
-          <p>Want to know which nurseries near you to ask?</p>
-          <button class="btn btn-ink btn-sm" type="button" data-upgrade data-upgrade-from="nurseries">${LOCK} Avail Premium to see them</button>
-        </div>`}` : ""}
-      <div class="pp-actions">
-        <button class="btn btn-ink btn-sm" type="button" data-plan-pdf>Download PDF report</button>
-        ${hasAmount ? `<button class="btn btn-line btn-sm" type="button" data-plan-copy>Copy the list</button>` : ""}
-        ${hasAmount && navigator.share ? `<button class="btn btn-line btn-sm" type="button" data-plan-share>Share the list</button>` : ""}
-        ${reminders}
+
+    /* the headline panel, beside the form */
+    const layout = hasAmount ? Planner.layout(rows.map(r => r.plant)) : SAMPLE_PLOT;
+    const planted = hasAmount ? `${fmt(w.count.total)} ${w.count.total === 1 ? "tree" : "trees"}, ${w.spacing} m apart` : "";
+    summary.innerHTML = hasAmount ? `
+      <div class="pp-summary-main">
+        <dl class="pp-tiles">
+          <div class="pp-tile-main"><dt>Seedlings to buy</dt><dd>${fmt(w.count.buy)}</dd><dd class="pp-tile-note">${fmt(w.count.total)} to plant, ${fmt(w.count.spare)} spare to replace early losses</dd></div>
+          <div><dt>Rough cost</dt><dd>${w.count.cost != null ? peso(w.count.cost) : "-"}</dd><dd class="pp-tile-note">${w.count.cost != null ? "Seedlings only, at your price" : "Enter a price per seedling to see this"}</dd></div>
+          ${isPremium()
+            ? `<div><dt>Plant in</dt><dd>${w.cal ? PlantCal.monthRange(w.cal.best) : "-"}</dd><dd class="pp-tile-note">${w.cal ? "From ten years of rain records at your pin" : "Rainfall records didn't load for this pin"}</dd></div>`
+            : `<div><dt>Plant in</dt><dd>Premium only</dd><dd class="pp-tile-note">Your best months, from ten years of rain records at your pin</dd></div>`}
+        </dl>
       </div>
-      ${!src.row && isPremium() ? saveForm(src) : ""}
-      ${isPremium() ? "" : `<p class="pp-note">Your free plan and PDF have your seedling count, care tips, site conditions and top ${FREE_LIMIT} trees. Premium adds the planting months, care by the month, nearby nurseries, reminders and the top 10 with scores.</p>`}
-      <p class="pp-note">Spacing, timings and care are starting guidelines, not a site survey. Check with your local CENRO which clearances apply before planting, especially on public land or in mangroves.</p>`;
+      <figure class="pp-plot">
+        ${plot(layout, `Planting map: ${planted}`)}
+        <figcaption>
+          ${rows.length > 1 ? `<table class="pp-split"><thead><tr><th scope="col">Tree</th><th scope="col">Plant</th><th scope="col">Buy</th></tr></thead><tbody>${rows.map((r, i) => `<tr><th scope="row"><span class="pp-swatch pp-swatch-${i}"></span>${esc(r.sp.name)}</th><td>${fmt(r.plant)}</td><td>${fmt(r.buy)}</td></tr>`).join("")}</tbody></table>` : ""}
+          <p><b>${planted}.</b> ${layout.sampled ? `Showing a ${layout.cols} by ${layout.lines} corner of your plan.` : "Each dot is one tree."} Drawn as a square; your land's shape will differ.</p>
+        </figcaption>
+      </figure>` : `
+      <div class="pp-summary-main">
+        <p class="pp-prompt-label">Seedlings to buy</p>
+        <p class="pp-prompt-big">?</p>
+        <p class="pp-prompt">Enter your land size to see how many seedlings to buy, and a map of how to space them.</p>
+      </div>
+      <figure class="pp-plot pp-plot-idle">${plot(layout, "A sample planting map")}</figure>`;
+
+    /* everything below */
+    const steps = w.plan ? w.plan.reduce((a, m) => a + m.items.length, 0) : 0;
+    const reminders = isPremium()
+      ? `<button class="btn btn-sky btn-sm" type="button" data-plan-reminders${w.plan ? "" : " disabled"}>Add reminders to my calendar</button>`
+      : `<button class="btn btn-line btn-sm" type="button" data-upgrade data-upgrade-from="reminders">${LOCK} Add reminders to my calendar</button>`;
+    const months = !isPremium() ? lockedMonths() : w.plan ? `
+      <section class="pp-year">
+        <div class="pp-year-head">
+          <h3 class="pp-h">Month by month</h3>
+          <p>${steps} steps, from now until a year after planting. Add them to your phone so nothing gets missed.</p>
+          ${reminders}
+        </div>
+        <ol class="pp-months">${w.plan.map(m => `
+          <li${m.items.some(i => i.key === "plant") ? ` class="is-plant"` : ""}><p class="pp-when">${esc(m.when)}</p><div>${m.items.map(i => `<h4>${esc(i.title)}</h4><p>${esc(i.detail)}</p>`).join("")}</div></li>`).join("")}
+        </ol>
+      </section>` : `<p class="pp-empty pp-empty-gap">The month-by-month plan needs your pin's rainfall records. ${src.row ? "" : "Tap your spot on the map again to retry."}</p>`;
+    const careAndList = `
+      <div class="pp-lower${hasAmount ? "" : " pp-lower-one"}">
+        <section>
+          <h3 class="pp-h">Care for ${w.count.rows.length > 1 ? "these trees" : esc(w.count.rows[0]?.sp.name || "this tree")}</h3>
+          <dl class="pp-care">${w.count.rows.map(r => `
+            <div>${TREE_PHOTOS[r.sp.id] ? `<img src="${TREE_PHOTOS[r.sp.id].thumb}" alt="" width="160" height="160" loading="lazy" decoding="async">` : ""}
+              <div><dt>${esc(r.sp.name)}</dt><dd>${esc(r.sp.plant)} ${esc(r.sp.care)}</dd></div></div>`).join("")}</dl>
+        </section>
+        ${hasAmount ? `
+        <section class="pp-ticket">
+          <h3 class="pp-h">Your list for the nursery</h3>
+          <pre class="pp-list" id="pp-list">${esc(list)}</pre>
+          <div class="pp-ticket-actions">
+            <button class="btn btn-line btn-sm" type="button" data-plan-copy>Copy the list</button>
+            ${navigator.share ? `<button class="btn btn-line btn-sm" type="button" data-plan-share>Share the list</button>` : ""}
+          </div>
+          ${isPremium() ? "" : `<div class="pp-places-locked">
+            <p>Want to know which nurseries near you to ask?</p>
+            <button class="btn btn-ink btn-sm" type="button" data-upgrade data-upgrade-from="nurseries">${LOCK} Avail Premium to see them</button>
+          </div>`}
+        </section>` : ""}
+      </div>`;
+    out.innerHTML = `
+      ${months}
+      ${careAndList}
+      <div class="pp-actions">
+        <button class="btn btn-ink" type="button" data-plan-pdf>Download PDF report</button>
+        ${isPremium() && w.plan ? "" : reminders}
+        ${!src.row && isPremium() ? saveForm(src) : ""}
+      </div>
+      <div class="pp-notes">
+        ${isPremium() ? "" : `<p class="pp-note">Your free plan and PDF have your seedling count, care tips, site conditions and top ${FREE_LIMIT} trees. Premium adds the planting months, care by the month, nearby nurseries, reminders and the top 10 with scores.</p>`}
+        <p class="pp-note">Spacing, timings and care are starting guidelines, not a site survey. Check with your local CENRO which clearances apply before planting, especially on public land or in mangroves.</p>
+      </div>`;
   }
 
   // Free: the shape of the month-by-month plan, with no dates in it.
   function lockedMonths() {
     const rows = ["Reserve your seedlings", "Prepare the ground", "Plant", "First check", "Water young trees", "Count your trees"];
     return `
-      <h3 class="pp-h">Month by month</h3>
-      <div class="pp-months-gate">
-        <ol class="pp-fake" aria-hidden="true">${rows.map(r => `<li><p class="pp-when">Month</p><div><h4>${r}</h4><p>What to do, and how.</p></div></li>`).join("")}</ol>
-        <div class="pp-months-lock">
-          <div class="nursery-lock-panel">
-            <h3>Your care plan, month by month</h3>
-            <p>Premium shows when to reserve, plant, water and count your trees, with reminders for your phone's calendar. From ${RR_CONFIG.premiumPrice} a month.</p>
-            <button class="btn btn-sky" type="button" data-upgrade data-upgrade-from="plan">${LOCK} Avail Premium to unlock this feature</button>
+      <section class="pp-year pp-year-locked">
+        <h3 class="pp-h">Month by month</h3>
+        <div class="pp-months-gate">
+          <ol class="pp-fake" aria-hidden="true">${rows.map(r => `<li><p class="pp-when">Month</p><div><h4>${r}</h4><p>What to do, and how.</p></div></li>`).join("")}</ol>
+          <div class="pp-months-lock">
+            <div class="nursery-lock-panel">
+              <h3>Your care plan, month by month</h3>
+              <p>Premium shows when to reserve, plant, water and count your trees, with reminders for your phone's calendar. From ${RR_CONFIG.premiumPrice} a month.</p>
+              <button class="btn btn-sky" type="button" data-upgrade data-upgrade-from="plan">${LOCK} Avail Premium to unlock this feature</button>
+            </div>
           </div>
         </div>
-      </div>`;
+      </section>`;
   }
 
   function saveForm(src) {

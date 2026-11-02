@@ -44,6 +44,31 @@ const Planner = (() => {
     return { rows, total, buy, spare: buy - total, cost: price > 0 ? Math.round(buy * price * 100) / 100 : null };
   }
 
+  /* ---------- The planting map ---------- */
+
+  const MAX_DOTS = 400;
+
+  // Lays trees out on a square grid, mixing species as evenly as possible. shares: how many of each tree.
+  // A plan too big to draw shows a corner of itself, in the same proportions.
+  function layout(shares) {
+    const total = shares.reduce((a, b) => a + b, 0);
+    const sampled = total > MAX_DOTS;
+    const dots = sampled ? MAX_DOTS : total;
+    const cols = Math.ceil(Math.sqrt(dots));
+    const placed = shares.map(() => 0), points = [];
+    for (let i = 0; i < dots; i++) {
+      // whichever tree is furthest behind its fair share goes next
+      let best = 0, gap = -Infinity;
+      shares.forEach((s, tree) => {
+        const behind = s / total * (i + 1) - placed[tree];
+        if (behind > gap + 1e-9) { gap = behind; best = tree; }
+      });
+      placed[best]++;
+      points.push(best);
+    }
+    return { cols, lines: Math.ceil(dots / cols), points, sampled, total };
+  }
+
   /* ---------- Month by month ---------- */
 
   const stamp = (y, m) => y * 12 + m;
@@ -168,5 +193,5 @@ const Planner = (() => {
     return ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//RootRite//Planting plan//EN", "CALSCALE:GREGORIAN", "METHOD:PUBLISH", ...events, "END:VCALENDAR", ""].join("\r\n");
   }
 
-  return { SPACINGS, SPARE, MAX_TREES, spacingFor, treesFor, shares, seedlings, plantingMonth, carePlan, nextCount, addMonths, shoppingList, reminders };
+  return { SPACINGS, SPARE, MAX_TREES, MAX_DOTS, spacingFor, treesFor, shares, seedlings, layout, plantingMonth, carePlan, nextCount, addMonths, shoppingList, reminders };
 })();
