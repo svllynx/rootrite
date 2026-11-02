@@ -9,6 +9,6 @@ window.RR_CONFIG = {
   premiumPrice: "₱75",
   seasonPrice: "₱299", // also written on the pricing card in index.html
   seasonMonths: 6,     // also set in set_demo_plan in supabase/schema.sql
-  orgPrice: "₱649",
+  orgPrice: "₱599",
   orgSeats: 10 // also set in join_organisation in supabase/schema.sql
 };
