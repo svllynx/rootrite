@@ -124,8 +124,7 @@ const MyPlan = (() => {
         <ul class="pp-hidden" aria-hidden="true">
           <li><span>Seedlings of ${esc(name)} to buy</span><span class="cmp-hidden" style="width:30%"></span></li>
           <li><span>Rough cost</span><span class="cmp-hidden" style="width:44%"></span></li>
-          <li><span>When to reserve them</span><span class="cmp-hidden" style="width:58%"></span></li>
-          <li><span>Month-by-month care</span><span class="cmp-hidden" style="width:72%"></span></li>
+          <li><span>Care tips for your trees</span><span class="cmp-hidden" style="width:72%"></span></li>
           <li><span>List for the nursery</span><span class="cmp-hidden" style="width:50%"></span></li>
           <li><span>PDF report</span><span class="cmp-hidden" style="width:38%"></span></li>
         </ul>
@@ -199,13 +198,15 @@ const MyPlan = (() => {
     const hasAmount = w.count.total > 0;
     const list = hasAmount ? Planner.shoppingList({
       siteName: src.row?.name || src.name, place: src.readings?.place, rows: w.count.rows, total: w.count.total, buy: w.count.buy,
-      spacing: w.spacing, cost: w.count.cost, cal: w.cal, nurseries: near.list || []
+      spacing: w.spacing, cost: w.count.cost, cal: isPremium() ? w.cal : null, nurseries: near.list || []
     }) : "";
     const tiles = hasAmount ? `
       <dl class="pp-tiles">
         <div><dt>Seedlings to buy</dt><dd>${fmt(w.count.buy)}</dd><dd class="pp-tile-note">${fmt(w.count.total)} to plant, ${fmt(w.count.spare)} spare to replace early losses</dd></div>
         <div><dt>Rough cost</dt><dd>${w.count.cost != null ? peso(w.count.cost) : "-"}</dd><dd class="pp-tile-note">${w.count.cost != null ? "Seedlings only, at your price" : "Enter a price per seedling to see this"}</dd></div>
-        <div><dt>Plant in</dt><dd class="pp-tile-months">${w.cal ? PlantCal.monthRange(w.cal.best) : "-"}</dd><dd class="pp-tile-note">${w.cal ? "From ten years of rain records at your pin" : "Rainfall records didn't load for this pin"}</dd></div>
+        ${isPremium()
+          ? `<div><dt>Plant in</dt><dd class="pp-tile-months">${w.cal ? PlantCal.monthRange(w.cal.best) : "-"}</dd><dd class="pp-tile-note">${w.cal ? "From ten years of rain records at your pin" : "Rainfall records didn't load for this pin"}</dd></div>`
+          : `<div><dt>Plant in</dt><dd class="pp-tile-months">Premium only</dd><dd class="pp-tile-note">Your best months, from ten years of rain records at your pin</dd></div>`}
       </dl>
       ${w.count.rows.length > 1 ? `<table class="pp-split"><thead><tr><th scope="col">Tree</th><th scope="col">To plant</th><th scope="col">To buy</th></tr></thead><tbody>${w.count.rows.map(r => `<tr><th scope="row">${esc(r.sp.name)}</th><td>${fmt(r.plant)}</td><td>${fmt(r.buy)}</td></tr>`).join("")}</tbody></table>` : ""}` : `<p class="pp-prompt">Enter your land size above to see how many seedlings to buy.</p>`;
     const reminders = isPremium()
@@ -213,7 +214,7 @@ const MyPlan = (() => {
       : `<button class="btn btn-line btn-sm" type="button" data-upgrade data-upgrade-from="reminders">${LOCK} Add reminders to my calendar</button>`;
     out.innerHTML = `
       ${tiles}
-      ${w.plan ? `
+      ${!isPremium() ? lockedMonths() : w.plan ? `
         <h3 class="pp-h">Month by month</h3>
         <ol class="pp-months">${w.plan.map(m => `
           <li><p class="pp-when">${esc(m.when)}</p><div>${m.items.map(i => `<h4>${esc(i.title)}</h4><p>${esc(i.detail)}</p>`).join("")}</div></li>`).join("")}
@@ -234,8 +235,25 @@ const MyPlan = (() => {
         ${reminders}
       </div>
       ${!src.row && isPremium() ? saveForm(src) : ""}
-      ${isPremium() ? "" : `<p class="pp-note">Your free PDF has your seedling count, care tips, site conditions and top ${FREE_LIMIT} trees. Premium's also has the planting months, care by the month, nearby nurseries and the top 10 with scores.</p>`}
+      ${isPremium() ? "" : `<p class="pp-note">Your free plan and PDF have your seedling count, care tips, site conditions and top ${FREE_LIMIT} trees. Premium adds the planting months, care by the month, nearby nurseries, reminders and the top 10 with scores.</p>`}
       <p class="pp-note">Spacing, timings and care are starting guidelines, not a site survey. Check with your local CENRO which clearances apply before planting, especially on public land or in mangroves.</p>`;
+  }
+
+  // Free: the shape of the month-by-month plan, with no dates in it.
+  function lockedMonths() {
+    const rows = ["Reserve your seedlings", "Prepare the ground", "Plant", "First check", "Water young trees", "Count your trees"];
+    return `
+      <h3 class="pp-h">Month by month</h3>
+      <div class="pp-months-gate">
+        <ol class="pp-fake" aria-hidden="true">${rows.map(r => `<li><p class="pp-when">Month</p><div><h4>${r}</h4><p>What to do, and how.</p></div></li>`).join("")}</ol>
+        <div class="pp-months-lock">
+          <div class="nursery-lock-panel">
+            <h3>Your care plan, month by month</h3>
+            <p>Premium shows when to reserve, plant, water and count your trees, with reminders for your phone's calendar. From ${RR_CONFIG.premiumPrice} a month.</p>
+            <button class="btn btn-sky" type="button" data-upgrade data-upgrade-from="plan">${LOCK} Avail Premium to unlock this feature</button>
+          </div>
+        </div>
+      </div>`;
   }
 
   function saveForm(src) {
