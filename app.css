@@ -841,3 +841,8 @@
   .nursery-lock-panel { padding: 20px 16px; }
   .nursery-lock-panel .btn { width: 100%; }
 }
+
+.pp-places-locked { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; margin-top: 4px; padding: 14px 20px; background: var(--sage-2); }
+.pp-places-locked p { font-size: 16px; }
+.pp-places-locked .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+@media (max-width: 760px) { .pp-places-locked .btn { flex: 1 1 100%; } }

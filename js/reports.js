@@ -308,10 +308,10 @@ const Reports = (() => {
 
   /* ---------- A person's own site report and planting plan ---------- */
 
-  async function buildMine({ owner, site, plan, plantings = [], checks = [] }) {
+  async function buildMine({ owner, site, plan, plantings = [], checks = [], withNurseries = false }) {
     await loadLibrary();
     const s = site.site || {}, r = s.readings || {};
-    const [logo, map, nurseries] = await Promise.all([smallLogo().catch(() => null), mapImage(site.lat, site.lon), nearbyNurseries(site.lat, site.lon)]);
+    const [logo, map, nurseries] = await Promise.all([smallLogo().catch(() => null), mapImage(site.lat, site.lon), withNurseries ? nearbyNurseries(site.lat, site.lon) : []]);
     const doc = makeDoc(`Prepared for ${owner} on ${today()}. Estimates for planning; check with the local CENRO.`);
     doc.header(`Planting plan: ${site.name}`, `${owner}  |  ${today()}`, logo);
 

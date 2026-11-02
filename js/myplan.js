@@ -195,7 +195,7 @@ const MyPlan = (() => {
     if (select) {
       select.innerHTML = Planner.SPACINGS.map(m => `<option value="${m}"${m === w.spacing ? " selected" : ""}>${m} m${m === w.advised ? " (suggested)" : ""}</option>`).join("");
     }
-    const near = src.pin ? nurseriesNear(src.pin) : { list: [] };
+    const near = src.pin && isPremium() ? nurseriesNear(src.pin) : { list: [] }; // nursery names are Premium only
     const hasAmount = w.count.total > 0;
     const list = hasAmount ? Planner.shoppingList({
       siteName: src.row?.name || src.name, place: src.readings?.place, rows: w.count.rows, total: w.count.total, buy: w.count.buy,
@@ -222,7 +222,11 @@ const MyPlan = (() => {
       <dl class="pp-care">${w.count.rows.map(r => `<div><dt>${esc(r.sp.name)}</dt><dd>${esc(r.sp.plant)} ${esc(r.sp.care)}</dd></div>`).join("")}</dl>
       ${hasAmount ? `
         <h3 class="pp-h">Your list for the nursery</h3>
-        <pre class="pp-list" id="pp-list">${esc(list)}</pre>` : ""}
+        <pre class="pp-list" id="pp-list">${esc(list)}</pre>
+        ${isPremium() ? "" : `<div class="pp-places-locked">
+          <p>Want to know which nurseries near you to ask?</p>
+          <button class="btn btn-ink btn-sm" type="button" data-upgrade data-upgrade-from="nurseries">${LOCK} Avail Premium to see them</button>
+        </div>`}` : ""}
       <div class="pp-actions">
         <button class="btn btn-ink btn-sm" type="button" data-plan-pdf>Download PDF report</button>
         ${hasAmount ? `<button class="btn btn-line btn-sm" type="button" data-plan-copy>Copy the list</button>` : ""}
@@ -479,6 +483,7 @@ const MyPlan = (() => {
     const ids = new Set(plantings.map(p => p.id));
     return {
       owner: state.account.name,
+      withNurseries: isPremium(),
       plantings,
       checks: my.checks.filter(c => ids.has(c.planting_id)),
       site: { id: src.row?.id || "current", name: src.row?.name || src.name || "Your site", location: src.location || src.site.location, lat: src.pin.lat, lon: src.pin.lon, site: { ...src.site, readings: src.readings } },
