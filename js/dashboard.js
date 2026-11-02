@@ -402,6 +402,9 @@ async function confirmUpgrade() {
     } else if (state.upgradeFrom === "sites") {
       $("mysites").scrollIntoView({ behavior: "instant" });
       toast("Premium is active. You can now save up to 20 sites.");
+    } else if (state.upgradeFrom === "planting") {
+      $("planting").scrollIntoView({ behavior: "instant" });
+      toast("Premium is active. Here are the best months for your site.");
     } else if (state.upgradeFrom === "nurseries") {
       $("nurseries").scrollIntoView({ behavior: "instant" });
       toast("Premium is active. Here are the places near your site.");

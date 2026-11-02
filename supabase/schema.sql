@@ -639,7 +639,7 @@ create table if not exists public.upgrade_events (
 );
 alter table public.upgrade_events drop constraint if exists upgrade_events_source_check;
 alter table public.upgrade_events add constraint upgrade_events_source_check
-  check (source in ('nav', 'results', 'compare', 'tree-check', 'plan', 'reminders', 'sites', 'diary', 'plan-card', 'nurseries', 'other'));
+  check (source in ('nav', 'results', 'compare', 'tree-check', 'plan', 'reminders', 'sites', 'diary', 'plan-card', 'nurseries', 'planting', 'other'));
 alter table public.upgrade_events enable row level security;
 drop policy if exists "Signed-in people add counts" on public.upgrade_events;
 create policy "Signed-in people add counts" on public.upgrade_events for insert to authenticated
