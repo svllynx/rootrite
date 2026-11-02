@@ -208,9 +208,7 @@ function render(animate) {
         ${isPremium() ? compareToggle(best) : ""}
         ${isPremium()
           ? `<button class="btn btn-sky btn-sm" type="button" data-plan-add="${best.sp.id}">Plan ${esc(best.sp.name)}: how many to buy</button>`
-          : MyPlan.siteDiffers()
-            ? `<button class="btn btn-sky btn-sm" type="button" data-upgrade data-upgrade-from="plan" data-plan-map>Plan ${esc(best.sp.name)} with Premium</button>`
-            : `<a class="btn btn-sky btn-sm" href="#myplan">Plan ${esc(best.sp.name)}: how many to buy</a>`}
+          : `<a class="btn btn-sky btn-sm" href="#myplan">Plan ${esc(best.sp.name)}: how many to buy</a>`}
       </div>
     </article>`;
 
@@ -239,7 +237,7 @@ function render(animate) {
     <div class="upsell">
       <div>
         <p class="upsell-line">${more > 0 ? `${more} more native ${more === 1 ? "tree fits" : "trees fit"} this site. The next best is ${esc(next.sp.name)}.` : "See how well each tree fits, factor by factor."}</p>
-        <p class="upsell-note">Premium shows the top 10+ with scores, and plans every site, from ${RR_CONFIG.premiumPrice} a month.</p>
+        <p class="upsell-note">Premium shows the top 10+ with scores, and your full planting plan, from ${RR_CONFIG.premiumPrice} a month.</p>
       </div>
       <button class="btn btn-sky" type="button" data-upgrade data-upgrade-from="results">See more trees</button>
     </div>` : "";
@@ -400,7 +398,7 @@ async function confirmUpgrade() {
       toast("Premium is active. Here's the full answer for your tree.");
     } else if (["plan", "reminders"].includes(state.upgradeFrom)) {
       $("myplan").scrollIntoView({ behavior: "instant" });
-      toast("Premium is active. You can now plan every site and add reminders.");
+      toast("Premium is active. Your full plan and reminders are ready.");
     } else if (state.upgradeFrom === "sites") {
       $("mysites").scrollIntoView({ behavior: "instant" });
       toast("Premium is active. You can now save up to 20 sites.");

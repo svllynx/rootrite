@@ -446,7 +446,7 @@ revoke execute on function public.create_organisation(text, text), public.invite
 grant execute on function public.create_organisation(text, text), public.invite_details(text), public.join_organisation(text), public.list_org_members(uuid), public.remove_org_member(uuid, uuid) to authenticated;
 
 -- 7. Personal sites, planting plans and the tree diary. Each person sees only their own.
--- Free accounts get one saved site, once; deleting it doesn't give the free site back. Premium and
+-- Free accounts get one saved site, once, which follows the site they describe; deleting it doesn't give it back. Premium and
 -- Organization members can save up to 20, and only they can keep a tree diary.
 alter table public.profiles add column if not exists free_site_used boolean not null default false;
 
@@ -515,7 +515,7 @@ create policy "Own checks" on public.my_checks for all to authenticated
 
 revoke all on public.my_sites, public.my_plantings, public.my_checks from anon, authenticated;
 grant select, delete on public.my_sites, public.my_plantings, public.my_checks to authenticated;
-grant insert (name, location, lat, lon, site, plan), update (name, plan) on public.my_sites to authenticated;
+grant insert (name, location, lat, lon, site, plan), update (name, location, lat, lon, site, plan) on public.my_sites to authenticated;
 grant insert (site_id, species_id, count, planted_on, notes) on public.my_plantings to authenticated;
 grant insert (planting_id, checked_on, alive, notes) on public.my_checks to authenticated;
 

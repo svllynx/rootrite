@@ -1,7 +1,8 @@
 /*
   RootRite: the planting plan and My sites.
-  Free accounts get one plan and a shorter report, for one saved site, so they can see what Premium does.
-  Premium plans any site and saves up to 20. The database enforces the limits on saved sites.
+  Free accounts get a simple plan and a shorter report, kept on one saved site that follows whatever site
+  they describe. Premium adds the months, nurseries, reminders and diary, and saves up to 20 sites side by side.
+  The database enforces the limits on saved sites.
 */
 const MyPlan = (() => {
   const $ = id => document.getElementById(id);
@@ -16,11 +17,16 @@ const MyPlan = (() => {
 
   /* ---------- What the plan is for ---------- */
 
+  // A saved site with a tree diary, or an account that saved several on Premium, stays as it was.
+  const canFollow = row => my.sites.length === 1 && !my.plantings.some(p => p.site_id === row.id);
+
   function source() {
     if (!isPremium() && !my.viewing && freeSite()) my.viewing = freeSite().id;
     const row = my.viewing ? my.sites.find(r => r.id === my.viewing) : null;
-    if (row) return { row, site: row.site, readings: row.site.readings || null, pin: { lat: row.lat, lon: row.lon }, name: row.name, location: row.location };
     const snap = SiteMap.snapshot(), site = readSite();
+    // a Free plan is always about the site described above, once there is one
+    if (row && !isPremium() && snap.pin) return { row, site, readings: snap.readings || null, pin: snap.pin, name: canFollow(row) ? row.name : site.location || row.name, location: site.location };
+    if (row) return { row, site: row.site, readings: row.site.readings || null, pin: { lat: row.lat, lon: row.lon }, name: row.name, location: row.location };
     return { row: null, site, readings: snap.readings || null, pin: snap.pin || null, name: site.location, location: site.location };
   }
 
@@ -68,9 +74,28 @@ const MyPlan = (() => {
 
   /* ---------- The plan ---------- */
 
+  // Moves a Free account's saved site to whatever is described above, and saves it shortly after.
+  let following;
+  function followSite() {
+    const row = freeSite(), snap = SiteMap.snapshot();
+    if (isPremium() || !my.loaded || !row || !canFollow(row) || !snap.pin || SiteMap.isReading()) return;
+    const sameRain = JSON.stringify(snap.readings?.monthly || null) === JSON.stringify(row.site?.readings?.monthly || null);
+    if (!differsFromAbove(row) && sameRain) return;
+    const now = readSite();
+    if (now.location && now.location !== row.location && now.location.length >= 2) row.name = now.location.slice(0, 120);
+    Object.assign(row, { location: now.location || null, lat: snap.pin.lat, lon: snap.pin.lon, site: { ...now, readings: snap.readings || null } });
+    paintSites();
+    clearTimeout(following);
+    following = setTimeout(async () => {
+      const { error } = await db().from("my_sites").update({ name: row.name, location: row.location, lat: row.lat, lon: row.lon, site: row.site }).eq("id", row.id);
+      if (error) toast(rrErrorText(error));
+    }, 500);
+  }
+
   function paint() {
     const box = $("myplan-body");
     if (!box || !state.account) return;
+    followSite();
     const src = source();
     if (!my.loaded) { box.innerHTML = `<p class="pp-empty">Loading your plan…</p>`; return; }
     if (!src.pin) { box.innerHTML = startHere(); return; }
@@ -127,9 +152,6 @@ const MyPlan = (() => {
     return CONDITIONS.some(k => !(k === "moist" && now.soil === "tidal") && String(now[k]) !== String(saved[k]));
   }
 
-  // For the results above: is a Free account's only plan for some other site?
-  const siteDiffers = () => !isPremium() && my.loaded && !!freeSite() && differsFromAbove(freeSite());
-
   function siteWords(s) {
     const space = { S: "house lot", M: "large yard", L: "open land" }[s.space];
     const ground = s.soil === "tidal" ? "tidal mud" : `${fmt(s.elev)} m, ${SOIL_WORDS[s.soil]} soil, ${["flat", "gently sloping", "steep"][s.slope]}`;
@@ -139,19 +161,14 @@ const MyPlan = (() => {
 
   function banner(src) {
     if (!src.row) return "";
+    if (!isPremium()) {
+      return `<div class="pp-banner">
+        <p><b>This is your free plan, for ${esc(src.name)}.</b> ${esc(siteWords(src.site))}. It updates when you change the site above. Premium adds the planting months, nurseries, reminders and a tree diary.</p>
+        <button class="btn btn-ink btn-sm" type="button" data-upgrade data-upgrade-from="plan">${LOCK} See your full plan</button>
+      </div>`;
+    }
     const differs = differsFromAbove(src.row), words = esc(siteWords(src.row.site));
     const note = "The trees in your results and in Compare are for the site described above, so they can be different.";
-    if (!isPremium()) {
-      return differs
-        ? `<div class="pp-banner pp-banner-differs">
-            <p><b>This plan is for ${esc(src.row.name)}, not the site above.</b> ${words}. ${note} Your free plan stays with this one site.</p>
-            <button class="btn btn-sky btn-sm" type="button" data-upgrade data-upgrade-from="plan" data-plan-map>${LOCK} Plan the site above</button>
-          </div>`
-        : `<div class="pp-banner">
-            <p><b>This is your free plan, for ${esc(src.row.name)}.</b> ${words}. Premium plans every site you have, and adds reminders and a tree diary.</p>
-            <button class="btn btn-ink btn-sm" type="button" data-upgrade data-upgrade-from="plan">${LOCK} Plan every site</button>
-          </div>`;
-    }
     return `<div class="pp-banner ${differs ? "pp-banner-differs" : "pp-banner-quiet"}">
       <p>Viewing <b>${esc(src.row.name)}</b>, from My sites. ${words}.${differs ? ` ${note}` : ""}</p>
       <button class="${differs ? "btn btn-sky btn-sm" : "link-btn"}" type="button" data-plan-current>Back to the site above</button>
@@ -190,7 +207,7 @@ const MyPlan = (() => {
       <div class="pp-offer">
         <form class="pp-claim" id="pp-claim" novalidate>
           <h3>Your first plan is free</h3>
-          <p>Every account gets one planting plan and PDF report, for one site. Use it on the site you'll actually plant, because it can't be moved or given back.</p>
+          <p>Every account gets a planting plan and a PDF report. It follows the site you describe above, so it's always up to date.</p>
           <div class="input"><label for="pp-claim-name">Name this site</label><input id="pp-claim-name" maxlength="120" value="${esc(src.name || "")}" placeholder="For example, North hillside"></div>
           <button class="btn btn-ink" type="submit">Get my free plan</button>
         </form>
@@ -216,7 +233,7 @@ const MyPlan = (() => {
       <div class="pp-offer pp-offer-used">
         <div class="pp-claim">
           <h3>You've used your free plan</h3>
-          <p>Premium plans every site, with seedling counts, care by the month, reminders and a PDF report for each.</p>
+          <p>Premium gives you a full plan, with seedling counts, care by the month, reminders and a PDF report.</p>
           <button class="btn btn-ink" type="button" data-upgrade data-upgrade-from="plan">${LOCK} Plan this site</button>
         </div>
       </div>`;
@@ -273,7 +290,7 @@ const MyPlan = (() => {
     const hasAmount = w.count.total > 0;
     const rows = w.count.rows.filter(r => r.plant > 0);
     const list = hasAmount ? Planner.shoppingList({
-      siteName: src.row?.name || src.name, place: src.readings?.place, rows: w.count.rows, total: w.count.total, buy: w.count.buy,
+      siteName: src.name || src.row?.name, place: src.readings?.place, rows: w.count.rows, total: w.count.total, buy: w.count.buy,
       spacing: w.spacing, cost: w.count.cost, cal: isPremium() ? w.cal : null, nurseries: near.list || []
     }) : "";
 
@@ -453,7 +470,7 @@ const MyPlan = (() => {
     const count = my.sites.length;
     $("mysites-count").textContent = isPremium()
       ? `${count} of 20 saved. Open one to see its plan, or save the site above from your planting plan.`
-      : "Free accounts save one site. Premium saves up to 20, and adds reminders and a tree diary.";
+      : "Free accounts keep one site, and it follows the site you describe above. Premium saves up to 20, and adds reminders and a tree diary.";
     const cards = my.sites.map(row => {
       const open = usable(row);
       return `
@@ -624,7 +641,7 @@ const MyPlan = (() => {
       premium: isPremium(),
       plantings,
       checks: my.checks.filter(c => ids.has(c.planting_id)),
-      site: { id: src.row?.id || "current", name: src.row?.name || src.name || "Your site", location: src.location || src.site.location, lat: src.pin.lat, lon: src.pin.lon, site: { ...src.site, readings: src.readings } },
+      site: { id: src.row?.id || "current", name: src.name || src.row?.name || "Your site", location: src.location || src.site.location, lat: src.pin.lat, lon: src.pin.lon, site: { ...src.site, readings: src.readings } },
       plan: { ...w, tidal: src.site.soil === "tidal" }
     };
   }
@@ -647,7 +664,7 @@ const MyPlan = (() => {
   function downloadReminders() {
     const src = source(), w = workOut(src, draft(src));
     if (!w.plan) return;
-    const text = Planner.reminders({ siteName: src.row?.name || src.name, plan: w.plan });
+    const text = Planner.reminders({ siteName: src.name || src.row?.name, plan: w.plan });
     const url = URL.createObjectURL(new Blob([text], { type: "text/calendar;charset=utf-8" }));
     const a = Object.assign(document.createElement("a"), { href: url, download: "rootrite-planting-reminders.ics" });
     document.body.appendChild(a);
@@ -660,7 +677,6 @@ const MyPlan = (() => {
   function onClick(e) {
     const t = e.target.closest("button");
     if (!t) return;
-    if (t.hasAttribute("data-upgrade")) my.wantMapSite = t.hasAttribute("data-plan-map");
     if (t.hasAttribute("data-plan-current")) { my.viewing = null; paint(); paintSites(); return; }
     if (t.hasAttribute("data-plan-pdf")) return withButton(t, "Making your PDF…", () => Reports.mine(reportContext(source())));
     if (t.hasAttribute("data-plan-copy")) return copyList();
@@ -716,8 +732,6 @@ const MyPlan = (() => {
   // After a plan change, or a Free account going Premium: show the site they were working on.
   function afterPlanChange() {
     if (!isPremium() && my.viewing !== freeSite()?.id) my.viewing = null;
-    if (isPremium() && my.wantMapSite) my.viewing = null; // they upgraded to plan the site on the map
-    my.wantMapSite = false;
     paint();
     paintSites();
   }
@@ -739,5 +753,5 @@ const MyPlan = (() => {
     toast(`${nameOf(id)} is in your planting plan.`);
   }
 
-  return { init, paint, paintSites, afterPlanChange, addTree, siteDiffers, my };
+  return { init, paint, paintSites, afterPlanChange, addTree, my };
 })();
