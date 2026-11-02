@@ -221,6 +221,8 @@
       <h2 id="nurseries-title" class="h2">Where to get seedlings</h2>
       <p class="app-section-lead">Nurseries near your pin, nearest first. Ones that list the tree in stock come first; for the rest, call ahead. Going soon? <a href="#myplan">Work out how many to buy</a> first.</p>
     </div>
+    <div class="nursery-gate">
+    <div class="nursery-content" id="nursery-content">
     <div class="nursery-tools">
       <label class="nursery-filter" for="nursery-species">Tree</label>
       <select id="nursery-species"></select>
@@ -262,6 +264,18 @@
         <button class="link-btn" type="button" id="nursery-cancel">Cancel</button>
       </div>
     </form>
+    </div>
+    <div class="nursery-lock" data-free-only>
+      <div class="nursery-lock-panel">
+        <h3 id="nursery-lock-title">Find out where to get seedlings</h3>
+        <p id="nursery-lock-text">Premium shows the places near your site, with distance, phone numbers, directions and listed stock.</p>
+        <button class="btn btn-sky" type="button" data-upgrade data-upgrade-from="nurseries">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+          Avail Premium to unlock this feature
+        </button>
+      </div>
+    </div>
+    </div>
     <p class="nursery-note">Nursery locations also come from OpenStreetMap (&copy; OpenStreetMap contributors). Stock changes, so call before you travel.</p>
   </section>
 
@@ -301,7 +315,7 @@
         <div class="plan-groups">
           <div><h4>Top 3 native trees for your site</h4><p>From a map pin that reads your elevation, rainfall, soil and slope.</p></div>
           <div><h4>Check a tree you have in mind</h4><p>A clear verdict for any of our 69 trees, and a warning if it may fail on your site.</p></div>
-          <div><h4>When to plant, and where to buy</h4><p>The best months for your site, and nurseries near your pin.</p></div>
+          <div><h4>When to plant</h4><p>The best months for your site, and the steps to get ready.</p></div>
           <div><h4>Your first planting plan and PDF report</h4><p>One full plan, for one site, so you can see what Premium does.</p></div>
         </div>
         <p class="plan-current" data-free-only>Your current plan</p>
@@ -316,6 +330,7 @@
         <p class="plan-plus">Everything in Free, plus:</p>
         <div class="plan-groups">
           <div><h4>A planting plan for every site</h4><p>Seedlings to buy, rough cost, and what to do each month until a year after planting.</p></div>
+          <div><h4>Where to get seedlings</h4><p>Nurseries near your site, with distance, phone numbers, directions and listed stock.</p></div>
           <div><h4>Why a tree will or won't work</h4><p>Factor-by-factor reasons for any tree you check, and better native alternatives.</p></div>
           <div><h4>Reminders, and a tree diary</h4><p>Add every task to your phone's calendar. Log what you plant, count survivors, and see when the next count is due.</p></div>
           <div><h4>All your good matches, with scores</h4><p>Top 10+ native trees, each scored and comparable side by side.</p></div>
@@ -351,6 +366,7 @@
     <h2 id="checkout-title" class="checkout-title">Upgrade to Premium</h2>
     <ul class="checkout-list">
       <li>A planting plan for every site, with seedling counts and care by the month</li>
+      <li>Nurseries near your site, with phone numbers and directions</li>
       <li>Reasons and better alternatives for any tree you check</li>
       <li>Calendar reminders and a tree diary</li>
       <li>Top 10+ native trees, scored and comparable</li>

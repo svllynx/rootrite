@@ -632,11 +632,14 @@ grant execute on function public.set_demo_plan(text, text) to authenticated;
 --   select source, kind, count(*) from public.upgrade_events group by 1, 2 order by 3 desc;
 create table if not exists public.upgrade_events (
   id         bigint generated always as identity primary key,
-  source     text not null check (source in ('nav', 'results', 'compare', 'tree-check', 'plan', 'reminders', 'sites', 'diary', 'plan-card', 'other')),
+  source     text not null,
   kind       text not null check (kind in ('tap', 'activated')),
   billing    text check (billing in ('monthly', 'season')),
   created_at timestamptz not null default now()
 );
+alter table public.upgrade_events drop constraint if exists upgrade_events_source_check;
+alter table public.upgrade_events add constraint upgrade_events_source_check
+  check (source in ('nav', 'results', 'compare', 'tree-check', 'plan', 'reminders', 'sites', 'diary', 'plan-card', 'nurseries', 'other'));
 alter table public.upgrade_events enable row level security;
 drop policy if exists "Signed-in people add counts" on public.upgrade_events;
 create policy "Signed-in people add counts" on public.upgrade_events for insert to authenticated

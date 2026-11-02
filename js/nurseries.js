@@ -4,6 +4,8 @@
   1. RootRite's own nursery directory (Supabase table "nurseries"), with the species each one stocks.
      Signed-in people can suggest a nursery; it shows to everyone once the team approves it.
   2. Nurseries, DENR offices (CENRO and PENRO) and garden shops mapped on OpenStreetMap, whose stock is unknown.
+  This section is a Premium feature. On Free it's blurred, and the page gets placeholders rather than
+  the real names, so removing the blur shows nothing.
 */
 const Nurseries = (() => {
   const RADIUS_KM = 50;        // how far to look around the pin
@@ -85,6 +87,7 @@ const Nurseries = (() => {
   /* ---------- Species sheets: one line each ---------- */
 
   function sheetLine(sp) {
+    if (!isPremium()) return `Nurseries near your site are part of Premium. <button class="link-btn" type="button" data-upgrade data-upgrade-from="nurseries">Unlock them</button>`;
     const p = pin();
     const find = `<button class="link-btn" type="button" data-find-seedlings="${sp.id}">See nurseries near you</button>`;
     if (!p) return `Drop a pin on the map above to find nurseries near you.`;
@@ -120,8 +123,14 @@ const Nurseries = (() => {
     const select = $("nursery-species");
     if (select.value !== sid) select.value = sid;
 
-    const list = ranked(sid).slice(0, LIST_MAX);
+    const everywhere = ranked(sid), list = everywhere.slice(0, LIST_MAX);
     layer.clearLayers();
+    $("nursery-content").inert = !isPremium();
+    if (!isPremium()) {
+      if (adding) stopAdding();
+      paintLocked(p, everywhere);
+      return;
+    }
     if (p) {
       if (!siteMarker) siteMarker = L.circleMarker([p.lat, p.lon], { radius: 9, color: "#4A2E1A", weight: 3, fillColor: "#80C8F0", fillOpacity: 1 }).bindTooltip("Your site").addTo(map);
       else siteMarker.setLatLng([p.lat, p.lon]);
@@ -150,6 +159,33 @@ const Nurseries = (() => {
     }
     box.innerHTML = list.map((n, i) => item(n, sp, i)).join("");
     map.fitBounds(L.latLngBounds([[p.lat, p.lon], ...list.map(n => [n.lat, n.lon])]).pad(0.15), { maxZoom: 13 });
+  }
+
+  // Free: a blurred map of the area with dots only, placeholder rows, and how many places there are.
+  function paintLocked(p, list) {
+    if (p) {
+      if (!siteMarker) siteMarker = L.circleMarker([p.lat, p.lon], { radius: 9, color: "#4A2E1A", weight: 3, fillColor: "#80C8F0", fillOpacity: 1 }).addTo(map);
+      else siteMarker.setLatLng([p.lat, p.lon]);
+    }
+    const shown = list.slice(0, LIST_MAX);
+    shown.forEach(n => L.circleMarker([n.lat, n.lon], { radius: 7, weight: 2, color: "#FBF7F0", fillColor: "#6F8A5E", fillOpacity: 1 }).addTo(layer));
+    if (p) map.fitBounds(L.latLngBounds([[p.lat, p.lon], ...shown.map(n => [n.lat, n.lon])]).pad(0.15), { maxZoom: 13 });
+    else map.setView([12.3, 122.6], 5);
+    $("nursery-list").innerHTML = Array.from({ length: 4 }, () => `
+      <li class="nursery">
+        <div class="nursery-main">
+          <h3 class="nursery-name">Nursery near your site</h3>
+          <p class="nursery-meta">Type of place and opening hours</p>
+          <p class="nursery-stock">Which native trees it lists, and how to ask.</p>
+        </div>
+        <p class="nursery-km">0 km</p>
+        <p class="nursery-actions"><a>Call</a> <a>Directions</a></p>
+      </li>`).join("");
+    const n = list.length;
+    $("nursery-lock-title").textContent = !p ? "Find out where to get seedlings"
+      : n ? `${fmt(n)} ${n === 1 ? "place" : "places"} to ask, within ${RADIUS_KM} km of your pin`
+      : "Find out where to get seedlings";
+    $("nursery-lock-text").textContent = `Premium shows the places near your site, with distance, phone numbers, directions and listed stock. From ${RR_CONFIG.premiumPrice} a month.`;
   }
 
   function item(n, sp, i) {

@@ -825,3 +825,19 @@
 .checkout-list { font-size: 15px; }
 .tag-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .nurseries .app-section-lead a { color: var(--green); text-underline-offset: 3px; }
+
+/* ---------- Where to get seedlings: locked on Free ---------- */
+.nursery-gate { position: relative; }
+[data-plan="free"] .nursery-content { filter: blur(7px); pointer-events: none; user-select: none; }
+.nursery-lock { position: absolute; inset: 0; z-index: 5; display: grid; place-items: center; padding: 16px; }
+.nursery-lock[hidden] { display: none; }
+.nursery-lock-panel { display: grid; gap: 14px; justify-items: start; width: min(520px, 100%); padding: 28px; background: var(--green); color: var(--on-dark); }
+.nursery-lock-panel h3 { margin: 0; font: 600 var(--t-sub)/1.1 var(--display); letter-spacing: -0.02em; }
+.nursery-lock-panel p { font-size: 16px; }
+.nursery-lock-panel .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; text-align: center; }
+.nursery-gate .nursery-actions a:not([href]) { text-decoration: underline; }
+@media (max-width: 760px) {
+  .nursery-lock { align-items: start; padding: 24px 0; }
+  .nursery-lock-panel { padding: 20px 16px; }
+  .nursery-lock-panel .btn { width: 100%; }
+}
