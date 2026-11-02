@@ -202,11 +202,11 @@ const Reports = (() => {
   const SHORT_STATUS = { best: "Best", ok: "Can plant", heavy: "Very wet", late: "Dry ahead", dry: "Too dry" };
 
   // Conditions and recommended trees; `who` is whoever set the choices, for example "the team".
-  function conditionSections(doc, s, r, who) {
+  function conditionSections(doc, s, r, who, premium = true) {
     if (s.elev == null || !s.soil) return doc.h2("Site conditions");
     doc.h2("Site conditions");
     {
-      const type = r.monthly?.length === 12 ? PlantCal.TYPES[PlantCal.calendar(r.monthly).type] : null;
+      const type = premium && r.monthly?.length === 12 ? PlantCal.TYPES[PlantCal.calendar(r.monthly).type] : null;
       const auto = `Map pin estimate; ${who} can correct it`;
       doc.table(["Condition", "Value", "Basis"], [
         ["Elevation", `${fmt(s.elev)} m`, `Copernicus terrain, via Open-Meteo. ${auto}`],
@@ -222,12 +222,12 @@ const Reports = (() => {
       ], [0.2, 0.28, 0.52]);
 
       doc.h2("Recommended native trees", 170);
-      const ranked = rank(s).filter(x => x.fit >= 45).slice(0, 10);
+      const ranked = rank(s).filter(x => x.fit >= 45).slice(0, premium ? 10 : 3);
       if (ranked.length) {
-        doc.table(["Tree", "Scientific name", "Status", "Mature height", "Growth", "Fit"],
-          ranked.map(x => [x.sp.name, x.sp.sci, x.sp.status ? `${x.sp.native}, ${x.sp.status}` : x.sp.native, x.sp.height, x.sp.growth, `${x.fit}%`]),
+        doc.table(["Tree", "Scientific name", "Status", "Mature height", "Growth", premium ? "Fit" : "Match"],
+          ranked.map(x => [x.sp.name, x.sp.sci, x.sp.status ? `${x.sp.native}, ${x.sp.status}` : x.sp.native, x.sp.height, x.sp.growth, premium ? `${x.fit}%` : matchWord(x.fit).replace(" match", "")]),
           [0.2, 0.28, 0.17, 0.15, 0.11, 0.09]);
-        doc.para("Fit compares this site with general guidance for each tree. Status codes follow the species list: CR critically endangered, EN endangered, VU vulnerable, NT near threatened.", { size: 8, color: SOFT });
+        doc.para(`${premium ? "Fit" : "Match"} compares this site with general guidance for each tree. Status codes follow the species list: CR critically endangered, EN endangered, VU vulnerable, NT near threatened.`, { size: 8, color: SOFT });
       } else {
         doc.para("No tree in RootRite's list fits these conditions well. Ask the local CENRO what grows nearby.");
       }
@@ -307,11 +307,13 @@ const Reports = (() => {
   }
 
   /* ---------- A person's own site report and planting plan ---------- */
+  // The free plan's report keeps the seedling count, care and conditions. Planting months, the month-by-month
+  // care, the climate type and nurseries are Premium.
 
-  async function buildMine({ owner, site, plan, plantings = [], checks = [], withNurseries = false }) {
+  async function buildMine({ owner, site, plan, plantings = [], checks = [], premium = false }) {
     await loadLibrary();
     const s = site.site || {}, r = s.readings || {};
-    const [logo, map, nurseries] = await Promise.all([smallLogo().catch(() => null), mapImage(site.lat, site.lon), withNurseries ? nearbyNurseries(site.lat, site.lon) : []]);
+    const [logo, map, nurseries] = await Promise.all([smallLogo().catch(() => null), mapImage(site.lat, site.lon), premium ? nearbyNurseries(site.lat, site.lon) : []]);
     const doc = makeDoc(`Prepared for ${owner} on ${today()}. Estimates for planning; check with the local CENRO.`);
     doc.header(`Planting plan: ${site.name}`, `${owner}  |  ${today()}`, logo);
 
@@ -333,15 +335,15 @@ const Reports = (() => {
     } else {
       doc.para(`Chosen trees: ${count.rows.map(x => x.sp.name).join(", ")}. Land size not entered yet, so there is no seedling count. Spacing: ${plan.spacing} m.`);
     }
-    if (plan.plan) {
+    if (premium && plan.plan) {
       doc.h2("Month by month", 150);
       doc.table(["When", "What to do"], plan.plan.map(m => [m.when, m.items.map(i => `${i.title}: ${i.detail}`).join("\n")]), [0.2, 0.8]);
     }
     doc.h2("Caring for your trees", 130);
     doc.table(["Tree", "Planting and care"], count.rows.map(x => [x.sp.name, `${x.sp.plant} ${x.sp.care}`]), [0.2, 0.8]);
 
-    conditionSections(doc, s, r, "the owner");
-    whenSection(doc, r);
+    conditionSections(doc, s, r, "the owner", premium);
+    if (premium) whenSection(doc, r);
     nurserySection(doc, nurseries);
     plantedSection(doc, site, plantings, checks, "the owner");
     aboutSection(doc);

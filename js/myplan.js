@@ -1,6 +1,6 @@
 /*
   RootRite: the planting plan and My sites.
-  Free accounts get one full plan and report, for one saved site, so they can see what Premium does.
+  Free accounts get one plan and a shorter report, for one saved site, so they can see what Premium does.
   Premium plans any site and saves up to 20. The database enforces the limits on saved sites.
 */
 const MyPlan = (() => {
@@ -131,7 +131,7 @@ const MyPlan = (() => {
         </ul>
         <form class="pp-claim" id="pp-claim" novalidate>
           <h3>Your first plan is free</h3>
-          <p>Every account gets one full planting plan and PDF report, for one site. Use it on the site you'll actually plant, because it can't be moved or given back.</p>
+          <p>Every account gets one planting plan and PDF report, for one site. Use it on the site you'll actually plant, because it can't be moved or given back.</p>
           <div class="input"><label for="pp-claim-name">Name this site</label><input id="pp-claim-name" maxlength="120" value="${esc(src.name || "")}" placeholder="For example, North hillside"></div>
           <button class="btn btn-ink" type="submit">Get my free plan</button>
         </form>
@@ -234,6 +234,7 @@ const MyPlan = (() => {
         ${reminders}
       </div>
       ${!src.row && isPremium() ? saveForm(src) : ""}
+      ${isPremium() ? "" : `<p class="pp-note">Your free PDF has your seedling count, care tips, site conditions and top ${FREE_LIMIT} trees. Premium's also has the planting months, care by the month, nearby nurseries and the top 10 with scores.</p>`}
       <p class="pp-note">Spacing, timings and care are starting guidelines, not a site survey. Check with your local CENRO which clearances apply before planting, especially on public land or in mangroves.</p>`;
   }
 
@@ -483,7 +484,7 @@ const MyPlan = (() => {
     const ids = new Set(plantings.map(p => p.id));
     return {
       owner: state.account.name,
-      withNurseries: isPremium(),
+      premium: isPremium(),
       plantings,
       checks: my.checks.filter(c => ids.has(c.planting_id)),
       site: { id: src.row?.id || "current", name: src.row?.name || src.name || "Your site", location: src.location || src.site.location, lat: src.pin.lat, lon: src.pin.lon, site: { ...src.site, readings: src.readings } },
