@@ -125,6 +125,7 @@ button { font: inherit; color: inherit; }
 .m-p3 { grid-area: p3; } .m-b { grid-area: b; } .m-v { grid-area: v; } .m-p4 { grid-area: p4; }
 .m-g { display: grid; place-items: center; }
 .mosaic-mark { width: auto; height: 78%; max-height: 300px; object-fit: contain; }
+.mosaic .ph img, .mosaic .ph video { filter: none; }
 .mosaic .ph img { animation: drift 24s var(--ease) infinite alternate; }
 .mosaic .m-p3 img { animation-delay: -8s; }
 .mosaic .m-p4 img { animation-delay: -16s; }
