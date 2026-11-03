@@ -113,24 +113,18 @@
 
       <div class="match-main">
         <h2 id="match-title" class="h2 rise">Your site, matched</h2>
-        <p class="preview-note rise">An example: a sunny, gently sloping lowland site at 150 m with moist loam soil, planted for shade.</p>
-        <div class="results rise">
-          <article class="tag tag-photo" aria-label="Example best match: Banaba">
-            <figure class="tag-pic"><img src="assets/trees/banaba.jpg" alt="Banaba in flower" width="720" height="480" loading="lazy" decoding="async"></figure>
-            <div>
-              <h3 class="tag-name">Banaba</h3>
-              <p class="tag-sci">Lagerstroemia speciosa · 8 to 15 m · Native</p>
-            </div>
-            <div class="tag-score"><p class="tag-fit">95%</p><p class="tag-fit-note">site suitability</p></div>
-            <ul class="tag-why"><li>Good for shade</li><li>Grows at 150 m</li><li>Takes loam soil</li><li>Suits your rainfall</li></ul>
-            <p class="tag-care">Handles heavy, seasonally wet clay. Flowers best in full sun; prune lightly after flowering.</p>
-          </article>
-          <ol class="runners">
-            <li class="runner"><div class="runner-tree"><img class="runner-thumb" src="assets/trees/thumbs/talisay.jpg" alt="" width="160" height="160" loading="lazy"><div><p class="runner-name">Talisay</p><p class="runner-sci">Terminalia catappa</p></div></div><p class="runner-why">Good for shade. Grows at 150 m. Prefers flat ground.</p><p class="runner-fit">94%</p></li>
-            <li class="runner"><div class="runner-tree"><img class="runner-thumb" src="assets/trees/thumbs/narra.jpg" alt="" width="160" height="160" loading="lazy"><div><p class="runner-name">Narra</p><p class="runner-sci">Pterocarpus indicus</p></div></div><p class="runner-why">Good for shade. Grows at 150 m.</p><p class="runner-fit">94%</p></li>
-          </ol>
-        </div>
-        <p class="preview-credit">Banaba photo by J.M.Garg, <a href="https://creativecommons.org/licenses/by-sa/3.0">CC BY-SA 3.0</a>; Talisay by Judgefloro, public domain; Narra plate by Francisco Manuel Blanco, public domain. All via <a href="https://commons.wikimedia.org/">Wikimedia Commons</a>.</p>
+        <p class="preview-note rise">See one site go from a pin on the map to a planting plan, in under a minute.</p>
+        <figure class="demo rise" id="demo">
+          <video id="demo-video" poster="assets/rootrite-demo-poster.jpg" width="1920" height="1080" muted playsinline controls preload="none" aria-label="RootRite demo video">
+            <source src="assets/rootrite-demo.mp4" type="video/mp4">
+            <track kind="captions" src="assets/rootrite-demo.vtt" srclang="en" label="English">
+          </video>
+          <button class="demo-sound" id="demo-sound" type="button">
+            <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5H4z" fill="currentColor"/><path d="M15.5 9a4.2 4.2 0 0 1 0 6M18 6.5a7.8 7.8 0 0 1 0 11" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            <span id="demo-sound-label">Turn sound on</span>
+          </button>
+        </figure>
+        <p class="preview-credit">The results are from a real run of the app, for Dumalagan, Butuan. The AI Site Scan before and after is an illustrative example. Map data © OpenStreetMap contributors. Photo and image credits are at the end of the video.</p>
       </div>
     </div>
   </section>

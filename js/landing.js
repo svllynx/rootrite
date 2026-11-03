@@ -122,7 +122,33 @@ async function initAccountNav() {
   document.querySelectorAll("[data-member]").forEach(n => { n.hidden = false; });
 }
 
+// The demo plays when its section is reached and rests when it leaves. Browsers only allow autoplay without sound.
+function initDemo() {
+  const video = document.getElementById("demo-video");
+  const sound = document.getElementById("demo-sound");
+  if (!video) return;
+  sound.addEventListener("click", () => {
+    video.muted = !video.muted;
+    if (!video.muted && video.paused && !video.ended) video.play().catch(() => {});
+  });
+  video.addEventListener("volumechange", () => {
+    document.getElementById("demo-sound-label").textContent = video.muted ? "Turn sound on" : "Turn sound off";
+  });
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches || !("IntersectionObserver" in window)) return;
+  // Stays put once the person pauses it themselves, or once it has played through.
+  let leftByUs = false, stopped = false;
+  video.addEventListener("pause", () => { if (!leftByUs && !video.ended) stopped = true; leftByUs = false; });
+  video.addEventListener("play", () => { stopped = false; });
+  video.addEventListener("ended", () => { stopped = true; });
+  new IntersectionObserver(entries => {
+    const seen = entries[entries.length - 1].isIntersecting;
+    if (seen && !stopped && video.paused) video.play().catch(() => {});
+    if (!seen && !video.paused) { leftByUs = true; video.pause(); }
+  }, { threshold: 0.5 }).observe(video);
+}
+
 document.addEventListener("DOMContentLoaded", () => {
+  initDemo();
   initTabs();
   // the credits are long, so they are built only when someone opens them
   document.querySelector(".tree-credits")?.addEventListener("toggle", renderTreeCredits, { once: true });
